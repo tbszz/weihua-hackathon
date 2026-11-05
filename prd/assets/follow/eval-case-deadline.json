@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "deadline-watch/purchase-delay-boundary-4d",
+  "skillId": "deadline-watch",
+  "skillVersion": "0.1.0",
+  "contextSnapshot": ["follow.rules.deadline@0.1.0"],
+  "input": {
+    "today": "2026-11-06",
+    "node": {"node_type": "采购到货", "planned": "2026-11-02", "expected": null, "actual": null, "status": "进行中"}
+  },
+  "assertions": [
+    "level == 橙",
+    "reason contains 延迟 4 天",
+    "level is computed by deadline_rules, not by the model"
+  ],
+  "forbidden": [
+    "Model changes the rule-computed level",
+    "Reminder sent twice within 24h at the same level"
+  ],
+  "humanRubric": {"role": "计划管理部审批人", "dimensions": ["accuracy"]}
+}
