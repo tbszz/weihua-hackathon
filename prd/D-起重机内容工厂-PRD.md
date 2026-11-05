@@ -38,7 +38,7 @@
 | 官方常用写法：用楼层数、车辆数类比参数（「近 235 层楼」「50 多层高楼」） | 类比文案风格 | 调研报告 B7 |
 | **新中式起重机**：和传统产品比，整机高度降低约 30%、自重降低约 25%、能耗降低约 20%、噪音降低约 20 dB；官网另一处统一写成「降低 15%–30%」 | 低矮厂房卖点 | [craneweihua findnews/183](http://craneweihua.com/findnews/183)、[hoisting_machinery](https://www.cranewh.com/hoisting_machinery.html) |
 | 新中式吊钩桥式：5–1000 t，跨度 10.5–40 m，起升高度 6–24 m，工作级别 A3/A5/A6/A7 | 实景合成可选型号的参数范围 | [weihuacraneglobal 2024-12-31](https://weihuacraneglobal.com/news/0c0418f50a5f7bb47fa871d498d80f22.html) |
-| 蒲瑞（集团全资子公司）生产减速机、车轮组、卷筒、吊钩组、滑轮组等起重机核心零部件 | 拆解第 3 层的「卫华自产」标注 | [pr-drive.com](http://www.pr-drive.com/) |
+| 蒲瑞（集团全资子公司）生产减速机、车轮组、卷筒、吊钩组、滑轮组等起重机核心零部件 | 拆解 L3 层的「卫华自产」标注 | [pr-drive.com](http://www.pr-drive.com/) |
 | 官网视频风格以航拍、主梁提升、载荷试验加参数字幕为主；**3800t 科普视频未查到** | 说明本作品的必要性；E 的风格参考 | [cranewh.com/video](https://www.cranewh.com/video) |
 | 场景表里的「1230t / 104m 长 / 51m 高」**公开资料未查到** | 演示改用 3800t；见第 13 节待确认 | 调研报告 A4 |
 | 集团内部「AI 全能应用挑战赛」三等奖有「AI 从产品方案设计到营销推广全流程」「影像内容生产的第二曲线革命」 | 答辩时讲清区别：本作品的重点是**参数可核对的交互科普**和**现场实景合成** | [jdzj 339228](https://www.jdzj.com/news/339228.html) |
