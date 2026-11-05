@@ -7,15 +7,16 @@
 
 | 文件 | 内容 |
 |---|---|
-| `prd/00-平台底座-PRD.md` | 卫华 AI 工作台底座 |
-| `prd/A-招投标助手-PRD.md` | 作品 A |
-| `prd/B-报价智能体-PRD.md` | 作品 B（主打） |
-| `prd/C-飞书跟进助手-PRD.md` | 作品 C |
-| `prd/D-起重机内容工厂-PRD.md` | 作品 D |
-| `prd/E-视频生产线-PRD.md` | 作品 E |
+| `00-平台底座/docs/PRD.md` | 卫华 AI 工作台底座 |
+| `A-招投标助手/docs/PRD.md` | 作品 A |
+| `B-报价智能体/docs/PRD.md` | 作品 B（主打） |
+| `C-飞书跟进助手/docs/PRD.md` | 作品 C |
+| `D-起重机内容工厂/docs/PRD.md` | 作品 D |
+| `E-视频生产线/docs/PRD.md` | 作品 E |
 
 - 平台暂名「**卫华 AI 工作台**」，英文代号 `weihua-ai`。各作品的模块代号：`bid`（A）、`quote`（B）、`follow`（C）、`studio`（D）、`video`（E），底座 `core`。
-- 每个会话只写自己那一份文件（附图、样例数据放在 `prd/assets/<代号>/` 下），不要改其他 PRD、`选题方案.md` 和 `research/`。
+- 每个会话只写自己那一份文件（附图、样例数据放在 `<作品文件夹>/data/` 下），不要改其他 PRD、`选题方案.md` 和 `research/`。
+- 每个项目文件夹下统一有 4 个子文件夹：`docs/`（PRD 和设计文档）、`data/`（样例和模拟数据、评测集）、`src/`（代码）、`demo/`（演示脚本、录屏、答辩材料）。
 
 ## 2. PRD 模板（每份都按这个结构）
 

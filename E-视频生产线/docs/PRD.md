@@ -1,6 +1,6 @@
 # 作品 E：视频生产线 PRD（模块代号 `video`）
 
-> 版本 v0.1 ｜ 2026-11-06 ｜ 遵守 [`prd/_约定.md`](_约定.md)
+> 版本 v0.1 ｜ 2026-11-06 ｜ 遵守 [`PRD约定.md`](../../PRD约定.md)
 > 依赖底座 `core`（Agent Runtime、编排器、检索、Claim、人工复核、飞书），能力按约定第 3 节直接引用，本文不重新设计。
 > 上游：作品 D（`studio`）产出的 `MediaAsset`；下游：公众号（`Article`）。
 
@@ -478,7 +478,7 @@ Article {                       // 约定第 4 节 E → 公众号，具体 Sche
 
 参数出处：[5437](https://cranewh.com/detail/5437.html)、[chinacrane](http://www.chinacrane.net/news/202501/10/291053.html)、[河南日报 2026-06-10](https://dzb.henandaily.cn/html5/2026-06/10/content_14_1796672.htm)、调研报告 C9。
 
-模板以 JSON 存放（格式沿用 Montage `planning/templates/product-showcase.json` 的 slots），放在 `prd/assets/video/` 下作为开发输入（开发时生成）。
+模板以 JSON 存放（格式沿用 Montage `planning/templates/product-showcase.json` 的 slots），放在 `E-视频生产线/data/` 下作为开发输入（开发时生成）。
 
 ---
 

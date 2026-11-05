@@ -1,8 +1,8 @@
 # 作品 C：飞书跟进助手 PRD
 
 > 模块代号：`follow`　｜　形态：单 Agent + 4 Skills　｜　所属链路：营销获客链（A → B → **C**）
-> 版本：v0.1（2026-11-06）　｜　依据：`prd/_约定.md`、`选题方案.md` v0.3「作品 C」、`research/卫华集团调研报告.md`
-> 底座能力（`core.feishu`、`core.redact`、`core.review`、`Claim`、导出）只引用，不在本文重新设计；具体 Schema 以 `prd/00-平台底座-PRD.md` 为准。
+> 版本：v0.1（2026-11-06）　｜　依据：`PRD约定.md`、`选题方案.md` v0.3「作品 C」、`research/卫华集团调研报告.md`
+> 底座能力（`core.feishu`、`core.redact`、`core.review`、`Claim`、导出）只引用，不在本文重新设计；具体 Schema 以 `00-平台底座/docs/PRD.md` 为准。
 
 ---
 
@@ -480,7 +480,7 @@
 
 ### 7.2 数据来源与模拟数据方案
 
-**所有数据均为模拟或脱敏数据**，客户名一律「国家 + 行业 + 某公司」，人名用化名，金额为虚构值。样例格式见 `prd/assets/follow/`。
+**所有数据均为模拟或脱敏数据**，客户名一律「国家 + 行业 + 某公司」，人名用化名，金额为虚构值。样例格式见 `C-飞书跟进助手/data/`。
 
 | 数据集 | 规模 | 内容要点 | 用途 |
 |---|---|---|---|
@@ -493,7 +493,7 @@
 
 ### 7.3 与底座和其他作品的接口
 
-**引用底座（`_约定.md` 第 3 节）**
+**引用底座（`PRD约定.md` 第 3 节）**
 
 | 底座能力 | 本作品怎么用 |
 |---|---|
@@ -513,7 +513,7 @@
 4. 通讯录读取用户姓名与部门；
 5. 多维表格「按最后修改时间增量拉取」或记录变更回调。
 
-**作品之间的数据（`_约定.md` 第 4 节）**
+**作品之间的数据（`PRD约定.md` 第 4 节）**
 
 | 方向 | 对象 | 本作品使用的字段 | 落到哪里 |
 |---|---|---|---|
@@ -687,7 +687,7 @@
 | Acemode AI 组织框架 | `C:\Users\ASUS\Desktop\Acemode社区\acemode-ai-org` | `skills/_template/`（SKILL.md + skill.json 结构）、`workflows/_template/workflow.json`（triggers / steps / human_gate / failurePolicy）、`governance/HUMAN_GATES.md`（H0–H3 和审批包）、`governance/BOUNDARIES.md`（Skill / Workflow / Tool 分工）、`evals/README.md` + `_template/case.json` | **改造**：组织方式直接用；原来面向微信 / 腾讯生态的 Context 和 Tool 全部换成飞书（`core.feishu`），触发器类型新增 `feishu_mention`、`cron`、`base_field_change`、`card_action` |
 | feishu-towechat | `~/.claude/skills/feishu-towechat`（`scripts/feishu_wechat/lark_cli.py`、`feishu.py`、`complex_content.py`、`references/configuration.md`） | lark-cli 的无 shell 调用方式、环境变量隔离、bot / user 身份切换、多维表格 `base +field-list / +record-list` 读取和截断处理、凭证不落盘的做法 | **直接用经验 + 少量代码改造**；飞书调用最终收敛到底座 `core.feishu`，本作品不另起一套 |
 | lark-cli | 本机已安装（`lark-cli im / base / event / docs`） | `im +chat-messages-list`、`im +messages-send / +messages-reply`、`im +messages-resources-download`、`base +record-list / +record-batch-create / +record-batch-update / +record-history-list`、`event consume im.message.receive_v1`、`card.action.trigger` | **直接用**（经底座封装） |
-| 底座 `core.*` | `prd/00-平台底座-PRD.md`（并行编写中） | 脱敏、复核、Claim、导出、品牌外壳 | **直接用** |
+| 底座 `core.*` | `00-平台底座/docs/PRD.md`（并行编写中） | 脱敏、复核、Claim、导出、品牌外壳 | **直接用** |
 | 语音转写 | 飞书开放平台 ASR；SenseVoice / faster-whisper 开源模型 | 语音 → 文本 | **直接用**，只写转码和切段 |
 
 ---

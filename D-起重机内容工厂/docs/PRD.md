@@ -1,8 +1,8 @@
 # 作品 D：起重机内容工厂 PRD
 
 > 模块代号 `studio` ｜ 形态：单 Agent + 5 个 Skills ｜ 所属：卫华 AI 工作台（`weihua-ai`）
-> 版本 v0.1（2026-11-06）｜ 依据：`prd/_约定.md`、`选题方案.md` v0.3「作品 D」、`research/卫华集团调研报告.md`
-> 底座能力（`core.*`）和 `MediaAsset` 的具体 Schema 以 `prd/00-平台底座-PRD.md` 为准，本文只写 studio 产出和消费的字段。
+> 版本 v0.1（2026-11-06）｜ 依据：`PRD约定.md`、`选题方案.md` v0.3「作品 D」、`research/卫华集团调研报告.md`
+> 底座能力（`core.*`）和 `MediaAsset` 的具体 Schema 以 `00-平台底座/docs/PRD.md` 为准，本文只写 studio 产出和消费的字段。
 
 ---
 

@@ -1,6 +1,6 @@
 # 00 · 卫华 AI 工作台 · 平台底座 PRD（`core`）
 
-> 版本 v1.0 · 2026-11-06 · 遵守 [`prd/_约定.md`](_约定.md)
+> 版本 v1.0 · 2026-11-06 · 遵守 [`PRD约定.md`](../../PRD约定.md)
 > 底座**不单独参赛**。它的 P0 定义为「5 个作品都要用、缺了就各自重复造轮子的最小集合」，必须在 **1.5 天**内搭好。
 > 本文是第 3 节能力和第 4 节数据对象的**唯一权威定义**：其他 5 份 PRD 引用这里的接口名、字段名和枚举值，不再重新设计。
 > 复用来源都读过源码（第 11 节写了具体文件），不是照着 README 写的。
@@ -397,7 +397,7 @@ POST /v1/search                                    检索（下文）
 GET  /v1/sources/{doc_id}?page=&locator=           原文查看（core-R6）
 ```
 
-**`core.search` 签名**（`_约定.md` 第 3 节的落地版）
+**`core.search` 签名**（`PRD约定.md` 第 3 节的落地版）
 
 ```python
 # Python 客户端
@@ -551,7 +551,7 @@ core.reviews.wait(reviewId: string, opts?: { timeoutS?: number }): Promise<Revie
  "link": "/reviews/rv_01JC41C3D4E5F6G7H8J9K0M1N2"}
 ```
 
-- **只有三种状态**：`pending` / `approved` / `rejected`（与 `_约定.md` 一致）。「改了再通过」= `approved` + `edits`（JSON Patch 数组，只允许改 `editable_fields` 里列出的路径），这正是 B「报价员改一条判断 → 生成知识条目」需要的数据。
+- **只有三种状态**：`pending` / `approved` / `rejected`（与 `PRD约定.md` 一致）。「改了再通过」= `approved` + `edits`（JSON Patch 数组，只允许改 `editable_fields` 里列出的路径），这正是 B「报价员改一条判断 → 生成知识条目」需要的数据。
 - 决定后：写审计 → 调 `callback.url`（POST `Review`，失败重试 3 次）→ 同时推 SSE `GET /v1/reviews/stream?app=quote`。作品用回调或 SSE 恢复流程（XFusion 的 `resume_after_approval` 模式）。
 - 权限：只有 `assignee.roles` 里的角色或 `user_ids` 里的人能决定；决定后不可再改（`REVIEW_STATE_CONFLICT`）。
 - 飞书通知（P0）：`notify.feishu = true` 时给 `feishu_open_ids` 发一条 markdown 消息，带「去工作台处理」链接。P1 换成交互卡片直接审批。
@@ -704,7 +704,7 @@ options = ClaudeAgentOptions(
 4. 界面上随时能看到「脱敏了什么」「云端看到了什么」；
 5. 一键切到「仅本地模型」，数据不出本机或内网。
 
-#### 5.4.2 接口（`_约定.md` 的落地版）
+#### 5.4.2 接口（`PRD约定.md` 的落地版）
 
 ```python
 core.redact(text: str | list[str], *, session_id: str | None = None,
@@ -1891,7 +1891,7 @@ E: 收件箱 → 成片 objects.put(MediaAsset kind=video_clip) → objects.put(
 
 > 单独存储时底座用一个包装 Schema `claim-object = allOf[Envelope, claim]` 校验；嵌入时直接用 `claim.schema.json`，所以这里用 `additionalProperties: false`（嵌入形态不允许信封字段）。
 
-示例（最小形态，正是 `_约定.md` 的三个字段）：
+示例（最小形态，正是 `PRD约定.md` 的三个字段）：
 
 ```json
 {"text": "该协议要求的工作级别 A7 与所选型号 RMG 40t 一致",
