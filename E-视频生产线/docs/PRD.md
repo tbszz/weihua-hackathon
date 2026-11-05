@@ -209,7 +209,7 @@
 |---|---|
 | 输入 | `Storyboard`、`Claim[]`、成片关键帧 3–5 张、IP 海报、QC 通过的成片 |
 | 处理 | 按卫华文风写推文；配图压到 < 1 MiB JPG/PNG；写飞书文档（`core.feishu`）；`core.review` 通过后调 feishu-towechat `sync --commit` |
-| 输出 | `Article{title, digest, body, images[], cover}` + 草稿 `media_id` |
+| 输出 | 底座 `Article{title, author, digest, content_markdown, cover, images[], channel, status}`，写草稿后回填 `wechat.draft_media_id` |
 | 验收 | 标题 ≤ 32 字、摘要 ≤ 120 字、正文 < 20,000 字（feishu-towechat 预检）；`draft/get` 校验通过才算成功；正文所有数字和视频一致 |
 
 ### 5.1 IP 毛绒化风格规范 `IpStyleSpec v0.1`
@@ -431,16 +431,24 @@ QcReport {
 | 兜底 | **确定性**：标题 ≤ 32、作者 ≤ 16、摘要 ≤ 120、正文 < 20,000 字且 < 1 MiB、图 < 1 MiB；数字与 `Claim` 对齐（同 QC 规则）。**流程**：未经 `core.review` 不写草稿；feishu-towechat 返回 `ip_allowlist_required` 时不重试，先给出 HTML 预览，等人确认 IP 白名单后再 `publish`；`ambiguous` 结果不算成功 |
 
 ```ts
-Article {                       // 约定第 4 节 E → 公众号，具体 Schema 以底座 PRD 为准
-  title: string;                // ≤ 32 字
-  digest: string;               // ≤ 120 字
-  author: string;               // 默认「卫华集团」（待确认）
-  body: string;                 // Markdown，写入飞书文档后由 feishu-towechat 渲染
-  images: Array<{ path: string; caption?: string; source: "frame" | "ip_poster" | "mediaAsset" | "ai" }>;
-  cover: string;                // 默认海报②
-  videoRef?: { renderPath: string; note: string };   // P0：正文放封面帧 + 文字说明；P1 上传素材库
+Article {                       // 底座 article.schema.json，字段以底座 PRD 7.3 为准；* 必填
+  id: string;                   // art_<ULID>
+  title*: string;               // ≤ 32 字
+  author*: string;              // ≤ 16 字，默认「卫华集团」（待确认）
+  digest*: string;              // ≤ 120 字
+  content_markdown*: string;    // Markdown 正文，< 20,000 字；写入飞书文档后由 feishu-towechat 渲染
+  content_html?: string;        // feishu-towechat 渲染结果
+  cover*: FileRef;              // 默认海报②
+  images: Array<{ file: FileRef; caption?: string; alt?: string; media_asset_id?: string }>;
+                                // 视频抽帧、IP 海报、AI 图都是 FileRef；来自 D 的素材填 media_asset_id
+  video_asset_id?: string;      // 成片登记为 MediaAsset 后填 ma_…；P0 正文放封面帧 + 文字说明
+  source_asset_ids: string[];   // 用到的 D 产出 MediaAsset
   claims: Claim[];
-  feishuDocUrl?: string; draftMediaId?: string;
+  channel*: "wechat_mp";
+  status*: "draft" | "pending_review" | "approved" | "draft_synced";   // published 只能人工改
+  review_id?: string;           // core.review 返回的 rv_…
+  feishu_doc?: { doc_token: string; url: string };
+  wechat?: { draft_media_id: string; verified: boolean; synced_at?: string };  // 草稿回读一致才 verified
 }
 ```
 
@@ -536,7 +544,7 @@ Article {                       // 约定第 4 节 E → 公众号，具体 Sche
 | ② 故事板 | 分镜表逐段展示：时间、画面要求、选中镜头缩略图 + 理由、字幕、配音、HUD（数字可点开出处）；每段可换候选、改文字；「确认并渲染」 |
 | ③ IP 工坊 | 风格规范（只读卡片 + 定稿参考图）；表情包 8 宫格、海报 2 张、出镜片段 3 段；每张显示一致性分和审核按钮 |
 | ④ 渲染与质检 | 阶段进度（建档 / 配音 / 渲染 / 质检）；播放器；QC 清单（红黄绿，点击跳到时间码） |
-| ⑤ 发布 | 左边公众号手机预览，右边标题 / 摘要 / 封面可改；「提交审核」→「写入草稿箱」；显示草稿 `media_id` 和校验结果 |
+| ⑤ 发布 | 左边公众号手机预览，右边标题 / 摘要 / 封面可改；「提交审核」→「写入草稿箱」；显示 `wechat.draft_media_id` 和校验结果（`wechat.verified`） |
 
 ```
 ② 故事板
@@ -575,7 +583,7 @@ Article {                       // 约定第 4 节 E → 公众号，具体 Sche
 | 1:40–2:20 | 切到 IP 工坊 | 毛绒大卫小华定稿图、8 个表情包、2 张海报 | 官方只有一张 3D 海报，我们定了一套毛绒规范：材质、配色、比例、表情。用定稿参考图 + 锁定提示词保证每张都是同一个角色，每张都过人工审核。 |
 | 2:20–3:20 | 回到故事板，把 S6 剪成 12 s 短片段点「现场渲染」；同时播放预渲染好的 60 s 完整成片 | 渲染进度条；播放成片：航拍 → 小华打招呼 → 扫描线 + HUD → 提升 → 双人片尾 | 完整成片提前渲好；现场这段 12 秒，大概 1 分钟出来。（展示 HUD、扫描线、光带转场） |
 | 3:20–3:45 | 打开质检报告；再演示一个坏样例：把 HUD 改成 200 m | QC 全绿；坏样例出现红色「数字无出处」 | 渲染完要过质检：编码、黑屏、冻结、响度，复用的是已经跑过生产的门禁；数字对不上出处，片子出不去。 |
-| 3:45–4:10 | 进入发布页，点「提交审核」→ 审核通过 →「写入草稿箱」 | 公众号手机预览 → 返回草稿 `media_id` 和校验通过 | 推文和视频同一套口径、同一批出处，审核后一键写进公众号草稿箱，发不发由人决定。 |
+| 3:45–4:10 | 进入发布页，点「提交审核」→ 审核通过 →「写入草稿箱」 | 公众号手机预览 → 返回 `wechat.draft_media_id`，校验通过（`verified = true`） | 推文和视频同一套口径、同一批出处，审核后一键写进公众号草稿箱，发不发由人决定。 |
 | 4:10–4:30 | **链路串联**：回到首页链路图 | D → E → 公众号 高亮 | 内容创作链：D 生成 3800t 交互科普页 → E 自动剪进成片、IP 出镜 → 公众号草稿。检索底座同时给 B 查标配、给 E 查宣传口径。 |
 
 演示保底：现场网络或渲染出问题时，切到提前录好的全流程录屏；公众号写草稿如果遇到 IP 白名单问题，切到 feishu-towechat 的 HTML 预览。

@@ -108,16 +108,16 @@
 |---|---|---|---|---|---|
 | **bid-R1** | 一句话意图解析 | 自然语言，如「中东 港口起重机 近 3 个月」「每天早上 8 点推东南亚桥式起重机的标」 | 规则先解析（复用 Q1 `nlp.py` 的时间和频率解析，新增海外地区词典和产品词表），模型只复核冲突；地区展开为国家列表，产品展开为多语种关键词（7.3） | `SearchIntent`（6.3） | 10 条测试句，市场、产品线、时间三要素全对 ≥ 9 条；界面显示展开后的国家和关键词，可手动增删 |
 | **bid-R2** | 多源抓取 | `SearchIntent` | 每个源一个适配器（继承 Q1 `TenderSource`），各自超时、限速、失败隔离；实时失败自动读当天缓存，并在界面标「缓存 · 抓取于 hh:mm」 | `TenderNotice[]` 原始集合 + 每个源的状态 | 3 个源都能返回结果或明确的降级状态；任何一个源挂掉不影响出结果 |
-| **bid-R3** | 清洗、去重、相关度打分 | 原始 `TenderNotice[]` | 去重：同源 ID、URL、标题归一化相似度（复用 Q1 `cleaning.py`）；相关度：正向词命中、CPV 码命中、负向词扣分（如 tower crane、truck-mounted crane、crane hire）；截止风险：复用 Q1 `attach_risk` | 排好序的 `Opportunity[]`（6.3），每条带「为什么相关」 | 20 条人工标注样本上 precision@10 ≥ 80%；已截止的标不进主列表 |
-| **bid-R4** | 分配与推送飞书 | `Opportunity[]` + 战区分配表（模拟） | 按国家 → 战区 → 负责人规则分配；写入飞书多维表格（`core.feishu`），已推送过的按 `content_hash` 跳过（复用 Q1 `storage.py`）；给负责人发卡片，按钮：认领 / 忽略 / 生成材料包 | 多维表格新增行、消息卡片 | 演示时 30 秒内飞书出现记录和卡片；重复运行不重复推送 |
+| **bid-R3** | 清洗、去重、相关度打分 | 原始 `TenderNotice[]` | 去重：同源 ID、URL、标题归一化相似度（复用 Q1 `cleaning.py`）；相关度：正向词命中、CPV 码命中、负向词扣分（如 tower crane、truck-mounted crane、crane hire）；截止风险：复用 Q1 `attach_risk` | 排好序的 `TenderLead[]`（6.3），每条带「为什么相关」 | 20 条人工标注样本上 precision@10 ≥ 80%；已截止的标不进主列表 |
+| **bid-R4** | 分配与推送飞书 | `TenderLead[]` + 战区分配表（模拟） | 按国家 → 战区 → 负责人规则分配；负责人点「认领」时把 `TenderLead` 转成底座 `Opportunity`（6.3 的映射，stage = lead）；写入飞书多维表格（`core.feishu`），已推送过的按 `content_hash` 跳过（复用 Q1 `storage.py`）；给负责人发卡片，按钮：认领 / 忽略 / 生成材料包 | 多维表格新增行、消息卡片 | 演示时 30 秒内飞书出现记录和卡片；重复运行不重复推送 |
 | **bid-R5** | 定时监控 | 带频率的意图 | 复用 Q1 `scheduler.py`（APScheduler + SQLite），增量只推新标 | 定时任务列表 | 演示用「每 1 分钟」模式能触发一次增量 |
-| **bid-R6** | 公告解析 | 一条 `Opportunity` 的正文（含 HTML）和附件链接 | 模型按 Schema 抽取资格要求、关键时间、所需材料、投标保证金、语言、币种；**每个字段必须带原文片段**，代码校验片段确实出现在正文里，校验不过就丢弃并标「需人工确认」；日期用正则二次校验 | `ParsedTender`（6.3） | 10 条标注公告：关键时间准确率 100%（错了宁可空），资格要求召回 ≥ 85%；所有字段都能点开看到原文 |
+| **bid-R6** | 公告解析 | 一条 `TenderLead` 的正文（含 HTML）和附件链接 | 模型按 Schema 抽取资格要求、关键时间、所需材料、投标保证金、语言、币种；**每个字段必须带原文片段**，代码校验片段确实出现在正文里，校验不过就丢弃并标「需人工确认」；日期用正则二次校验 | `ParsedTender`（6.3） | 10 条标注公告：关键时间准确率 100%（错了宁可空），资格要求召回 ≥ 85%；所有字段都能点开看到原文 |
 | **bid-R7** | 资料匹配与有效期检查 | `ParsedTender.requirements` + 公司资料库 | 每条要求先归到「资料类型码」（7.4.2）：关键词规则优先，规则不中再让模型归类并给置信度，置信度 < 0.7 交人工；按类型码去资料库取件；业绩按条件过滤（年限、吨位、品类、地区、份数）；有效期以**投标截止日**为基准判定 | `MaterialChecklist`：每项绿（齐全有效）/ 黄（30 天内过期或需人工确认）/ 红（缺失或已过期） | 5 个边界用例（已过期、截止前过期、业绩年限不够、缺件、要求不明确）全部判对；匹配结果和资料库记录一一可追溯 |
 | **bid-R8** | 授权书、承诺书填写 | 模板 + 资料库 + `ParsedTender` | 模板用 Word 占位符（`{{company.name_en}}` 这类）；字段值**只能**来自资料库或公告解析结果，每个字段记录来源；取不到的值填成红色「【待补：字段名】」，不允许模型编写；中文模板和英文模板按公告语言自动选择 | 填好的 .docx + 字段来源表 | 4 个模板都能生成；抽查生成文书，编造字段数 = 0；缺失字段 100% 标红 |
 | **bid-R9** | 甲方背调 | 甲方名称（+ 国家）或供应商名称 | 依次查：制裁名单、多边银行禁入名单、项目融资信息、国别风险分类、公开新闻；国内主体加查工商信息（演示用缓存）；按规则表计分；模型只把查到的事实写成摘要，每条事实是一个 `Claim` | `DueDiligenceReport`（6.3）+ Word/PDF | 同一输入两次运行分数一致；6 个测试主体（含 2 个虚构命中名单的主体）等级全对；每条结论都有出处 |
 | **bid-R10** | 注册信息清单 | 目标平台 + 资料库 | 按平台字段模板（P0 内置 Etimad、UNGM 两个）从资料库取值，标出需要人工准备的项（如沙特本地商业登记、DUNS 号） | Excel / 飞书文档清单 | 清单字段 100% 有值或明确标「需人工」 |
 | **bid-R11** | 复核与材料包 | 上面所有产出 | 汇总红黄项和风险项，提交 `core.review`；通过后按「序号_材料名_语言.pdf」规则命名打包 | 材料包 zip + 复核记录 | 未经复核不能导出；复核意见写入审计日志 |
-| **bid-R12** | 串联输出 | 复核通过的材料包 | 组装 `TenderPackage`（给 B）和 `Opportunity`（给 C）；写飞书多维表格对应字段 | 两个对象 | 字段满足 `PRD约定.md` 第 4 节，B/C 能直接读 |
+| **bid-R12** | 串联输出 | 复核通过的材料包 | 组装 `TenderPackage`（给 B）；更新已认领的 `Opportunity`（给 C）：回填 `tender_package_id`，`milestones` 用公告解析结果覆盖，`stage` 改为 bidding；写飞书多维表格对应字段 | 两个对象 | 字段满足 `PRD约定.md` 第 4 节，B/C 能直接读 |
 | bid-R13（P1） | 海外客户名录 | 市场 + 关键词 | 从世行合同授予公告、TED 授予公告里提取买方和中标方，识别国内同行（河南矿山、振华等）和国际品牌（Konecranes、Demag 等） | Excel：买方、国家、采购品类、年份、中标方、金额、来源链接 | 每行有来源链接 |
 | bid-R14（P1） | 供应商批量背调 | 名录 Excel/PDF | 逐个跑 bid-R9 | 汇总表 + 单份报告 | — |
 
@@ -130,7 +130,7 @@
 用底座编排器（医晓模式）串 6 个 Agent。前 1 个按「找标」触发，后 5 个按「选中一条标」触发。每个 Agent 都是「确定性代码打底 + 模型只做它擅长的那一小段」，模型失败时整条链不中断。
 
 ```text
-一句话 ─▶ ① 招标雷达 ─▶ Opportunity[] ─▶ 飞书多维表格 + 卡片
+一句话 ─▶ ① 招标雷达 ─▶ TenderLead[] ─▶ 飞书多维表格 + 卡片
                                          │ 用户点「生成材料包」
                                          ▼
               ② 公告解析 ─▶ ParsedTender ─┬─▶ ③ 资料匹配 ─▶ MaterialChecklist ─┐
@@ -170,34 +170,54 @@ interface SearchIntent {
   send_time?: string;
 }
 
-// ① 招标雷达 —— 输出（也是 A→C 的交换对象）
-interface Opportunity {
-  opportunity_id*: string;          // bid-<source>-<source_id>
-  name*: string;                    // 商机名称（中文摘要标题）
+// ① 招标雷达 —— 输出（A 内部对象，保留各招标源特有的字段）
+interface TenderLead {
+  lead_id*: string;                 // bid-<source>-<source_id>
+  name*: string;                    // 中文摘要标题
   title_original*: string;
   source*: "worldbank"|"ted"|"etimad"|"ungm"|"adb"|string;
   source_url*: string;
   notice_type*: "invitation"|"prequalification"|"eoi"|"award"|"other";
   buyer*: string;                   // 甲方
-  country*: string; region*: string;// 区域 = 战区
-  product_lines: string[];
+  country*: string;                 // ISO 3166-1 alpha-2
+  war_zone*: string;                // 战区
+  product_lines: string[];          // 产品线代码，见 7.3
   relevance_score*: number;         // 0–100
   relevance_reasons*: string[];     // 「命中 STS crane」「CPV 42414140」
   published_at*: string;
-  key_dates*: {name: "publish"|"clarification_deadline"|"bid_deadline"|"bid_opening"; at: string; evidence?: Claim}[];
+  key_dates*: {key: "clarification_deadline"|"bid_submission"|"bid_opening"|"document_purchase"|"site_visit"; at: string; evidence?: Claim}[];
   owner*: {name: string; feishu_open_id: string};   // 负责人
   funding?: string;                 // 「World Bank IDA-72640」
   doc_fee?: {amount: number; currency: string};
   is_cached*: boolean; fetched_at*: string;
   content_hash*: string;
+  opportunity_id?: string;          // 转成底座 Opportunity 后回填，opp_…
 }
 
-// ② 公告解析 —— 输入：Opportunity + 正文 HTML/附件链接；输出：
+// ① → A→C 交换对象：底座 Opportunity（opportunity.schema.json，字段以底座为准）
+// 认领（bid-R4）时由 TenderLead 确定性转换，不经模型：
+//   id                ← 新生成 opp_<ULID>
+//   name              ← name
+//   customer          ← {name: buyer, country}
+//   region            ← {country, war_zone}
+//   owner             ← owner（底座 Person）
+//   stage             ← "lead"；生成材料包后改 "registering"，提交复核通过后改 "bidding"
+//   milestones        ← key_dates 逐条转底座 Milestone：
+//                         {key, name: 中文名, due_at: at, status: "pending", source: "tender_package"}
+//                       （发布日期不算节点，不转）
+//   products          ← product_lines 逐条转底座 ProductSpec {category}
+//                       （overhead_crane / gantry_crane / port_crane / hoist 直接对应 category；
+//                        metallurgy_crane、explosion_proof、boat_hoist → special_crane，
+//                        shipyard_gantry → gantry_crane；原产品线代码写进 ProductSpec.name）
+//   tender_package_id ← bid-R12 生成 TenderPackage 后回填 tp_…
+//   feishu            ← bid-R4 写入多维表格后回填 {base_app_token, table_id, record_id}
+
+// ② 公告解析 —— 输入：TenderLead + 正文 HTML/附件链接；输出：
 interface ParsedTender {
-  opportunity_id*: string;
+  lead_id*: string;
   tender_no*: string;               // 招标编号，如 RFB No.
   language*: string; currency?: string;
-  key_dates*: Opportunity["key_dates"];
+  key_dates*: TenderLead["key_dates"];   // 解析出的时间覆盖雷达抓到的时间
   requirements*: Requirement[];     // 资格要求 + 所需材料
   bid_security?: Claim;             // 投标保证金/保函要求
   technical_docs: {name: string; url: string}[];   // 技术协议/规格书附件 → 给 B
@@ -512,7 +532,7 @@ interface TenderPackage {
 | 底座 → A | 编排器、模型切换、`core.redact`、`core.search`、`Claim`、`core.feishu`、`core.review`、文件导出、品牌外壳 | 见 `PRD约定.md` 第 3 节，本作品不重复设计 |
 | A → 飞书 | 多维表格「海外标讯」 | 字段：商机名称、原标题、来源、链接、国家、战区、产品线、相关度、发布时间、投标截止、负责人、状态（新/已认领/忽略/材料包已生成/已复核）、材料包链接、甲方风险等级 |
 | **A → B** | `TenderPackage` | 招标编号、甲方、截止时间、技术协议文件、资格要求（字段见 6.3）；B 读 `technical_docs` 识别非标点 |
-| **A → C** | `Opportunity` | 商机名称、区域、负责人、关键节点（`key_dates`）；C 据此在飞书建节点和逾期提醒 |
+| **A → C** | `Opportunity` | 底座 `Opportunity`：商机名称 `name`、甲方 `customer`、区域 `region`、负责人 `owner`、阶段 `stage`、关键节点 `milestones`、产品 `products`、`tender_package_id`；由 `TenderLead` 按 6.3 的映射转换；C 据此在飞书建节点和逾期提醒 |
 
 > 具体 Schema 以底座 PRD 为准；字段名不一致时以底座为准，本作品做映射。
 
@@ -625,7 +645,7 @@ interface TenderPackage {
 | 模块 | 现在是什么 | 怎么处理 |
 |---|---|---|
 | `bid_aggregator/sources.py` 的 `TenderSource` 基类、`safe_fetch` | 统一的适配器基类：超时、限速、失败隔离、登录态检测、来源状态 | **直接用**。新增 `WorldBankSource`、`TedSource`、`EtimadVisitorSource`（Playwright）；P1 加 `UngmSource`。剑鱼、采招网登录态源不启用 |
-| `bid_aggregator/models.py` 的 `QueryIntent`、`TenderRecord`、`SourceResult` | 国内场景字段（省市区） | **改造**：`QueryIntent` 加 `markets`、`product_lines`、多语种 `keywords`、`cpv_codes`；`TenderRecord` 扩成 `Opportunity`（加国家、买方、融资、截止时间结构化、币种、语言） |
+| `bid_aggregator/models.py` 的 `QueryIntent`、`TenderRecord`、`SourceResult` | 国内场景字段（省市区） | **改造**：`QueryIntent` 加 `markets`、`product_lines`、多语种 `keywords`、`cpv_codes`；`TenderRecord` 扩成 `TenderLead`（加国家、买方、融资、截止时间结构化、币种、语言），再按 6.3 的映射转成底座 `Opportunity` |
 | `bid_aggregator/nlp.py` | 规则解析时间、频率、中国地区 | **改造**：时间和频率解析直接用；地区词典换成海外国家 + 市场标签；关键词解析接入 7.3 词表 |
 | `bid_aggregator/intent_agent.py` | 模型复核意图、多模型回退 | **改造**：换提示词，模型调用改走底座 |
 | `bid_aggregator/cleaning.py` | 去重、过滤、截止时间风险 | **直接用**去重和 `attach_risk`；日期解析补阿拉伯数字格式和英文月份 |
