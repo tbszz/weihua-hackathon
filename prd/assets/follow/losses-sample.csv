@@ -1,0 +1,9 @@
+project_no,region,product,result,our_price_wan,win_price_wan,competitor,loss_note,expected_primary,expected_secondary
+XM-2026-031,中东战区,门式,丢单,820,760,竞品甲,客户最后选了竞品甲，对方报价比我们低 7% 左右,COMPETITOR,PRICE
+XM-2026-032,国内华东,桥式,丢单,96,,,业主说今年资金没批下来，项目砍了,BUDGET_CANCEL,
+XM-2026-033,东南亚战区,桥式,丢单,150,,,客户要求 45 天到货，我们排产最快 80 天,SCHEDULE,
+XM-2026-034,中东战区,门式,丢单,640,,,招标要求 3 个同类港口业绩和当地注册，我们只有 2 个,QUALIFICATION,
+XM-2026-035,国内华北,桥式,丢单,210,,,客户中途改成 50t 双梁，又加了防爆要求，后来没再联系,REQ_CHANGE,
+XM-2026-036,拉美战区,桥式,丢单,88,,,丢了,UNKNOWN,
+XM-2026-037,国内华南,门式,暂停,330,,,客户说明年二季度再启动,PAUSED,
+XM-2026-038,中亚战区,桥式,丢单,120,,,对方要求 100% 货到付款，商务谈不拢,COMMERCIAL,
