@@ -61,6 +61,9 @@
 | 卫华·旧版成员企业名单 | http://www.weihuazx.com/custom/201 | 中（旧页） |
 | 卫华中益·供应链联盟峰会 | http://weihuazhongyi.com/newdetail?id=27 | 中 |
 
+| 卫华集团公众号·2025 年度总结表彰大会推文（含 IP 海报；经搜狗微信搜“卫华 大卫 小华”进入，链接有时效） | https://weixin.sogou.com/weixin?type=2&query=卫华%20大卫%20小华 | 高 |
+| 大卫小华 IP 海报图（公众号图床） | https://mmbiz.qpic.cn/mmbiz_jpg/emWicWx0BeUYsVfIL6ejaiaibtCNZJKT0eCwF5hM7arDqXl8ByUgwKAw8mfxNzgafT3D5ZNZcjrOxuibUdvZ4ap8YuZeuv9SWhhVIHfMrib6vSwY/640?wx_fmt=jpeg | 高 |
+
 ## 党媒、政府、协会
 
 | 标题 | URL | 可信度 |
