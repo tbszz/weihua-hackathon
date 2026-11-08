@@ -1,0 +1,21 @@
+# Dependencies are installed locally for each independent hackathon project.
+# Keep generated third-party source out of the shared repository diff and audits.
+**/node_modules/
+**/.npm/
+**/.pnpm-store/
+
+# Local credentials, agent state, caches and generated build output.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/
+.omx/
+.preflight/
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/dist/
+**/data/runtime/
+*.log

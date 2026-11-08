@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小华 · 飞书跟进助手</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+<aside class="sidebar">
+ <a class="brand" href="#overview"><span class="brandmark">W<span>H</span></span><div>卫华 <b>AI 工作台</b><small>WEIHUA · SALES OPERATIONS</small></div></a>
+ <div class="workspace-label">营销获客链 <span>C / FOLLOW</span></div>
+ <nav aria-label="主导航">
+  <a href="#overview" data-page="overview"><span class="navicon">◫</span> 跟进总览</a>
+  <a href="#digest" data-page="digest"><span class="navicon">≡</span> 沟通摘要 <span class="navtag">主场景</span></a>
+  <a href="#nodes" data-page="nodes"><span class="navicon">⚑</span> 节点与预警 <span id="nav-risk-count" class="navcount"></span></a>
+  <a href="#risks" data-page="risks"><span class="navicon">◇</span> 风险登记</a>
+  <a href="#reports" data-page="reports"><span class="navicon">▥</span> 成交与丢单</a>
+  <div class="nav-divider"></div>
+  <a href="#connection" data-page="connection"><span class="navicon">⇄</span> 飞书连接</a>
+  <a href="#logs" data-page="logs"><span class="navicon">☷</span> 运行与评测</a>
+ </nav>
+ <div class="sidebar-bottom"><span class="avatar">华</span><div><strong>小华 · 跟进助手</strong><small>让每一次沟通有下文</small></div><span class="status-dot"></span></div>
+</aside>
+<div class="shell">
+ <header class="topbar"><div class="breadcrumb">应用 / <span>飞书跟进助手</span></div><div class="top-actions"><span class="demo-chip">P0 演示 · 虚构数据</span><span id="connection-chip" class="chip">本地服务已启动</span><span class="user-avatar">销</span></div></header>
+ <main id="app" tabindex="-1"><div class="empty">正在加载项目数据…</div></main>
+ <footer>小华 FOLLOW <span>摘要先确认 · 风险有依据 · 决策由人完成</span><span id="footer-mode">原文抽取 + 确定性规则</span></footer>
+</div>
+<div id="toast" role="status" class="toast" hidden></div>
+<dialog id="node-dialog"><form id="node-form"><div class="section-heading"><h2>更新项目节点</h2><button type="button" class="icon-button" id="close-dialog" aria-label="关闭">×</button></div><input id="edit-id" type="hidden"><p id="edit-name" class="muted"></p><label>计划日期<input type="date" id="edit-due"></label><label>供应商预计日期<input type="date" id="edit-expected"></label><label>状态<select id="edit-status"><option>未开始</option><option>进行中</option><option>已完成</option><option>已取消</option></select></label><p class="hint">保存后会立即重新计算等级和下游生产影响。</p><button class="primary" type="submit">保存并重新扫描</button></form></dialog>
+<script type="module" src="/app.js"></script>
+</body></html>

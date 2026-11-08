@@ -1,0 +1,90 @@
+{
+  "time": "2026-11-07T15:40:59.658Z",
+  "origin": "http://127.0.0.1:4173",
+  "checks": [
+    {
+      "name": "中英文摘要：确认前不回填，重复确认只追加一次",
+      "pass": true,
+      "details": {
+        "demands": 3,
+        "concerns": 2,
+        "todos": 3
+      }
+    },
+    {
+      "name": "修改供应商预计到货日期：等级与下游影响重算",
+      "pass": true,
+      "details": {
+        "level": "红",
+        "reason": "到货延迟 14 天（按供应商预计日期）；可能影响生产节点：主梁组焊（计划 2026-11-09）"
+      }
+    },
+    {
+      "name": "文字风险：人工确认入库且重复确认不重复登记",
+      "pass": true,
+      "details": {
+        "category": "商务/回款"
+      }
+    },
+    {
+      "name": "重复扫描不重复提醒",
+      "pass": true,
+      "details": {
+        "scanned": 13,
+        "newNotifications": 0
+      }
+    },
+    {
+      "name": "月报数字与手算一致",
+      "pass": true,
+      "details": {
+        "total": 45,
+        "won": 15,
+        "lost": 27,
+        "paused": 3,
+        "winRate": 35.7
+      }
+    },
+    {
+      "name": "已有样例评测",
+      "pass": true,
+      "details": {
+        "passed": 14,
+        "total": 14
+      }
+    },
+    {
+      "name": "飞书四表真实写入并逐字段读回",
+      "pass": true,
+      "details": {
+        "url": "https://my.feishu.cn/base/DrMibNbwqaupNesJRL3cwKNgn8f",
+        "counts": {
+          "customers": 12,
+          "nodes": 13,
+          "risks": 4,
+          "sales": 85
+        }
+      }
+    },
+    {
+      "name": "飞书重复同步：同本地ID更新，不新增重复记录",
+      "pass": true,
+      "details": {
+        "customers": 12,
+        "nodes": 13,
+        "risks": 4,
+        "sales": 85
+      }
+    },
+    {
+      "name": "飞书月报真实创建并读回统计数字",
+      "pass": true,
+      "details": {
+        "url": "https://my.feishu.cn/docx/R0wTdGz0OojqhMxV3gkcTXxVnAb"
+      }
+    }
+  ],
+  "baseUrl": "https://my.feishu.cn/base/DrMibNbwqaupNesJRL3cwKNgn8f",
+  "documentUrl": "https://my.feishu.cn/docx/R0wTdGz0OojqhMxV3gkcTXxVnAb",
+  "browserManual": "未完成：电脑工具无法可靠确认 Windows 浏览器 URL，已中止 UI 自动化。DOM 集成测试另行通过。"
+}

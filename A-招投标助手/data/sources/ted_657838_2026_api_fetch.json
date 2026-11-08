@@ -1,0 +1,18 @@
+{
+  "source_url": "https://api.ted.europa.eu/v3/notices/search",
+  "request_json": {
+    "query": "publication-number=657838-2026",
+    "fields": [
+      "publication-number",
+      "notice-title",
+      "publication-date",
+      "buyer-name",
+      "deadline-receipt-tender-date-lot",
+      "place-of-performance",
+      "description-proc"
+    ],
+    "limit": 1
+  },
+  "http_status": 200,
+  "fetched_at": "2026-11-07T15:27:31.337646+00:00"
+}

@@ -1,0 +1,255 @@
+{
+  "project": {
+    "name": "卫华 AI 工作台 · 底座导航",
+    "deviceType": "desktop",
+    "resolvedLane": "free_exploration",
+    "selectedIntentWorkflowRead": true,
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-experience-guidelines.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      }
+    ],
+    "contextReadScope": {
+      "mainAgent": {
+        "forbiddenReads": [
+          "other intent-workflows/**",
+          "Sub-Agent implementation files before dispatch"
+        ]
+      },
+      "pageSubAgent": {
+        "allowedReads": [
+          "current lane page runtime guide",
+          "current lane dispatch contract excerpt",
+          "current Page Packet",
+          "supplementaryReads[] only"
+        ],
+        "forbiddenReads": [
+          "SKILL.md full re-read",
+          "other intent-workflows/**",
+          "full runtime-orchestration-summary.json unless explicitly sliced"
+        ]
+      },
+      "readScopeLedgerWriter": "shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs"
+    },
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 2,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ]
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressSignals": [
+        "no_tool_call",
+        "no_artifact_diff",
+        "no_structured_decision"
+      ],
+      "noProgressNextAction": "enter_readiness_or_blocked_summary"
+    },
+    "intentProfile": {
+      "caseFamily": "free_exploration",
+      "sourceType": "none",
+      "graphicStrategy": null,
+      "routingReason": "no Library, no restore target, open-ended desktop workbench creation"
+    },
+    "cssPreflightEvidence": {
+      "applies": true,
+      "status": "passed",
+      "command": "node apply-html-head-contract.mjs colors_and_type.css .preflight/preflight.html --title=Preflight --lang=zh-CN --prefix=wh",
+      "brandPrefix": "wh",
+      "checks": {
+        "themeVars": "present",
+        "semanticTokenFallback": "present",
+        "themeInline": "present",
+        "tailwindCdn": "present",
+        "htmlClass": "present",
+        "semanticMappings": "resolved"
+      },
+      "retryCount": 0,
+      "blockingReason": null
+    },
+    "validationHistory": [
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "8a1200b0a0940357d87c12f69f16a09915bfda8465d471a330b9a5acf410ec28",
+        "checkedAt": "2026-11-07T05:38:48.858Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 3,
+        "repairPlanHints": [
+          "hardcoded-color-in-body"
+        ],
+        "errorSignatures": [
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/workbench.html: app-shell pages must declare data-scroll-region=\"primary\" on a class list containing overflow-y-auto.",
+            "signature": "63452d4176889de90fb13f2ad4fe8d7b52538d3ae6aa7a6d7bcd28bbeeda9b8a"
+          },
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/workbench.html: app-shell page still looks like natural document flow (min-h-screen) without a complete internal scroll shell.",
+            "signature": "5ff79bdc58698923869642cbd417c71d6bbe8e53bdc9e0087c42cf4adfe6612b"
+          },
+          {
+            "errorClass": "dispatch-preflight-or-ownership",
+            "normalized": "[dispatch-changed-files] project.expectedDispatches[] is required when dispatchPreflightManifest[] exists",
+            "signature": "1863095a5236c379a633d22a8424261bfcde770ff9ab246147a2326cba87f6fd"
+          }
+        ],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "230b825efffaa0266ee63b1037ba278b83a580396b6298805614aa4a7803ef26",
+        "checkedAt": "2026-11-07T05:40:07.381Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [
+          "hardcoded-color-in-body"
+        ],
+        "errorSignatures": [],
+        "terminalState": null
+      }
+    ],
+    "validationRepairLedger": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "8a1200b0a0940357d87c12f69f16a09915bfda8465d471a330b9a5acf410ec28",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-11-07T05:39:56.686Z",
+        "repairEntryStatus": "revalidated-success",
+        "ownerTriage": [
+          {
+            "owner": "sub-agent",
+            "errorClass": "hardcoded-color-in-body",
+            "affectedFiles": [
+              "workbench.html"
+            ],
+            "repairScope": "targeted-token-replace",
+            "strategy": "targeted_token_replace_once"
+          }
+        ],
+        "repairPlanHints": [
+          {
+            "errorClass": "hardcoded-color-in-body",
+            "owner": "sub-agent",
+            "repairScope": "targeted-token-replace",
+            "strategy": "targeted_token_replace_once",
+            "affectedFiles": [
+              "workbench.html"
+            ],
+            "repairReportPath": null,
+            "repairAlreadyAttempted": false,
+            "allowSourceRead": "no-full-html-read",
+            "maxValidationRuns": 2
+          }
+        ],
+        "repairActions": [
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [
+              "pages/workbench.html",
+              "runtime-orchestration-summary.json"
+            ],
+            "action": "fix-app-shell-scroll-region-and-dispatch-status",
+            "observedFileHashes": [
+              {
+                "path": "pages/workbench.html",
+                "hash": "3e29bed36ae2d317e40401693c6a7503d1382f84af9b6c94b0fa7f3beae2871c"
+              },
+              {
+                "path": "runtime-orchestration-summary.json",
+                "hash": "45070b0feba3965d2c2131e41f649fa83c1c755a49d2f7b76a8192badf475ae7"
+              }
+            ],
+            "preEditFileHashes": [],
+            "postEditFileHashes": [],
+            "repairOwnedFields": [
+              "unknown-blocking"
+            ],
+            "recordedAt": "2026-11-07T05:40:02.041Z",
+            "repairActionTableRequired": true
+          }
+        ],
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "230b825efffaa0266ee63b1037ba278b83a580396b6298805614aa4a7803ef26",
+        "revalidationSuccess": true,
+        "blockedReason": null,
+        "revalidationRecordedAt": "2026-11-07T05:40:12.465Z"
+      }
+    ],
+    "repairEntryEvidence": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "8a1200b0a0940357d87c12f69f16a09915bfda8465d471a330b9a5acf410ec28",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-11-07T05:39:56.686Z",
+        "ledgerIndex": 0,
+        "ownerTriageCount": 1,
+        "repairActionCount": 1,
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "230b825efffaa0266ee63b1037ba278b83a580396b6298805614aa4a7803ef26",
+        "revalidationSuccess": true
+      }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-workbench",
+      "htmlSrc": "pages/workbench.html",
+      "title": "卫华 AI 工作台",
+      "deviceType": "desktop",
+      "viewportMode": "app-shell",
+      "writeMode": "SectionPlanThenWrite"
+    }
+  ],
+  "expectedDispatches": [
+    {
+      "nodeId": "page-workbench",
+      "packetType": "FreePagePacket",
+      "status": "completed",
+      "changedFiles": [
+        "pages/workbench.html"
+      ],
+      "toolCallLedger": {
+        "todoWriteCalls": 0,
+        "previewCalls": 0,
+        "validationScriptCalls": 0,
+        "helperScriptWrites": 0
+      }
+    }
+  ]
+}

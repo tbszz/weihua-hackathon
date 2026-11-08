@@ -1,0 +1,48 @@
+[
+  {
+    "id": "pub_ungm_252462",
+    "title": "Supply of ‘transportable’ static load lifting crane",
+    "country": "利比里亚",
+    "buyer": "UNIDO",
+    "deadline": "2024-11-21T17:00:00+02:00",
+    "published": "2024-11-08",
+    "source_url": "https://www.ungm.org/Public/Notice/252462",
+    "source": "UNGM",
+    "body": "Tendering Text: Supply of ‘transportable’ static load lifting crane Beneficiary Country: Liberia",
+    "demo_data": false,
+    "fetched_at": "2026-11-07T15:23:32.967935+00:00",
+    "snapshot_path": "data/sources/ungm_252462_raw.txt",
+    "cache_fallback": false
+  },
+  {
+    "id": "pub_ungm_272359",
+    "title": "Annual Service Maintenance of the Overhead Crane",
+    "country": "奥地利",
+    "buyer": "CTBTO",
+    "deadline": "2025-07-25T17:00:00+02:00",
+    "published": "2025-07-15",
+    "source_url": "https://www.ungm.org/Public/Notice/272359",
+    "source": "UNGM",
+    "body": "Annual Service Maintenance of the Overhead Crane",
+    "demo_data": false,
+    "fetched_at": "2026-11-07T15:23:32.952435+00:00",
+    "snapshot_path": "data/sources/ungm_272359_raw.txt",
+    "cache_fallback": false
+  },
+  {
+    "id": "pub_oyu_tolgoi_60t",
+    "title": "Supply of EPC Service for 60-ton Gantry Crane Installation at Marshalling Yard",
+    "country": "蒙古国",
+    "buyer": "Oyu Tolgoi LLC",
+    "deadline": null,
+    "published": "2026-01-12",
+    "source_url": "https://www.ot.mn/en/procurement/eoi/supply-of-epc-service-for-60-ton-gantry-crane-installation-at-marshalling-yard",
+    "source": "OyuTolgoi",
+    "body": "Supply of EPC Service for 60-ton Gantry Crane Installation at Marshalling Yard\nDepartment: Operations\nOpen date: 2026/01/12/ 10:00\nClose date: 2026/01/19\n“Oyu Tolgoi” LLC (the ‘Company’) would like to invite potential and/or experienced suppliers to submit their Expression of Interest (EOI) in relation to Supply of EPC Service for 60-ton Gantry Crane Installation at Marshalling Yard.\n[An EOI is only a preliminary step to a formal tender process to understand and identify whether there are potential suppliers in the market that are interested in and capable of satisfying the procurement needs]\nScope description:\nA new 60-ton gantry crane will be constructed at the Marshalling Yard of Oyu Tolgoi Site. The Company has procured two gantry cranes from China, and assembly and fabrication process is currently underway. The project will follow an EPC (Engineering, Procurement, and Construction) model, with the scope outlined below. Interested parties may bid for the full EPC package or individual Engineering or Service Material supply components.\nThe scope of work includes but is not limited to following:\n1. Engineering Services\nThe scope includes all necessary engineering design work, excluding the gantry crane and its foundation. Key responsibilities include:\nElectrical design and calculations for the crane power supply from the existing substation.\nDesign of all related supports and load calculations.\nAll engineering work must be performed by licensed professionals with valid government approvals.\nAll drawings shall comply with Oyu Tolgoi standards and specifications.\n2. Procurement and Construction Services\nThe construction scope includes:\nSupply all materials in accordance with the approved design, specifications, and requirements.\nIdentify and manage long-lead items such as crane rails, rail clips, and associated electrical components.\nOn-site assembly of the two gantry cranes.\nInstallation of the electrical power supply system.\nInstallation of crane rails, clips and alignment.\nTesting and commissioning of the entire system.\nInterested and experienced suppliers are invited to submit their EOI and must include/attach, as a minimum, the following documentations/information:\nMandatory documents:\nState registration certificate (copy)*\nHSE policy & procedures (copy)*\nBusiness Code of Conduct (copy)*\nAudited Financial statement from the last 3 years (copy)*\nBrief introduction of company (copy)*\nOwnership/ shareholder information such as Company charter (copy)*\nExecutive team structure/ introduction (copy)*\nOrganization structure & Total manpower (copy)*\n* If the latest copies are already uploaded in OASIS Supplier Database, please make a note in the submission document(s) and no need to re-submit.\nScope-specific documents:\nScope-specific experience\nCustomer reference (at least 2)\nApplicable license and permissions.\nAny interested suppliers who wishes to participate in the EOI, must be registered in OASIS supplier database system. If you have not registered in the database, please register to our OASIS system available at https://oasis.ot.mn/.\nEOI documents must be prepared in Mongolian and/or English and must be submitted via OASIS supplier database system before 5:00 PM (Ulaanbaatar time), 19 January 2025.\nImportant notice:\nThe Company is only seeking an Expression of Interest from potential suppliers and makes no representation or promise in relation to procuring work from a supplier or suppliers.\nThe Company reserves the right to refuse any document(s) which is incomplete or submitted after the specified date & time.\nThe Company will not accept any EOIs stored on internet storage or in any other webpages or links.\nThe Company will not be responsible for any costs associated with preparing and submitting an Expression of Interest to the Company.\nThere will be no Questions and Answers provided during the EOI process.\n“OYU TOLGOI” LLC\nPROCUREMENT DEPARTMENT",
+    "demo_data": false,
+    "fetched_at": "2026-11-07T15:23:24.045159+00:00",
+    "snapshot_path": "data/sources/oyu_tolgoi_60t_raw.txt",
+    "cache_fallback": false,
+    "date_note": "原文顶部 Close date 为 2026/01/19，正文为 19 January 2025、17:00（Ulaanbaatar time）；年份冲突，deadline 留空，未擅自更正。"
+  }
+]

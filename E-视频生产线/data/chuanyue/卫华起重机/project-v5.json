@@ -1,0 +1,278 @@
+{
+  "title": "卫华起重机 · 名场面穿越 · 干净对白版",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shots": [
+    {
+      "id": "S0",
+      "src": "clips/S0.mp4",
+      "trimStart": 0.0,
+      "seconds": 2.0,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "T1",
+      "src": "clips/T1.mp4",
+      "trimStart": 3.5000000000000004,
+      "seconds": 0.9,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S1a",
+      "src": "clips-v2/S1a.mp4",
+      "trimStart": 0.0,
+      "seconds": 4.45,
+      "sourceVolume": 1.0,
+      "title": "愚公移山",
+      "titleStart": 0.2,
+      "titleSeconds": 2.8
+    },
+    {
+      "id": "S1b",
+      "src": "clips/S1b.mp4",
+      "trimStart": 0.0,
+      "seconds": 3.0,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "T2",
+      "src": "clips/T2.mp4",
+      "trimStart": 3.6000000000000005,
+      "seconds": 0.8,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S2a",
+      "src": "clips-v2/S2a.mp4",
+      "trimStart": 0.0,
+      "seconds": 4.45,
+      "sourceVolume": 1.0,
+      "title": "大禹治水",
+      "titleStart": 0.2,
+      "titleSeconds": 2.8
+    },
+    {
+      "id": "S2b",
+      "src": "clips/S2b.mp4",
+      "trimStart": 0.0,
+      "seconds": 3.2,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S3a",
+      "src": "clips-v2/S3a.mp4",
+      "trimStart": 0.0,
+      "seconds": 4.45,
+      "sourceVolume": 1.0,
+      "title": "女娲补天",
+      "titleStart": 0.2,
+      "titleSeconds": 2.8
+    },
+    {
+      "id": "S3b",
+      "src": "clips/S3b.mp4",
+      "trimStart": 0.0,
+      "seconds": 2.9,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S3c",
+      "src": "clips/S3c.mp4",
+      "trimStart": 0.0,
+      "seconds": 1.8,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S4a",
+      "src": "clips-v2/S4a.mp4",
+      "trimStart": 0.0,
+      "seconds": 4.45,
+      "sourceVolume": 1.0,
+      "title": "龙宫借宝",
+      "titleStart": 0.2,
+      "titleSeconds": 2.8
+    },
+    {
+      "id": "S4b",
+      "src": "clips/S4b.mp4",
+      "trimStart": 0.0,
+      "seconds": 3.5,
+      "sourceVolume": 0.0
+    },
+    {
+      "id": "S5",
+      "src": "clips/S5.mp4",
+      "trimStart": 0.0,
+      "seconds": 2.5,
+      "sourceVolume": 0.0
+    }
+  ],
+  "subtitles": [
+    {
+      "text": "这起重机得换个方法卖了",
+      "start": 0.05,
+      "end": 2.0
+    },
+    {
+      "text": "后生 你这家伙能吊多重",
+      "start": 3.9,
+      "end": 7.3
+    },
+    {
+      "text": "3800吨 约2500辆小轿车",
+      "start": 7.7,
+      "end": 10.05
+    },
+    {
+      "text": "你是哪个部落的",
+      "start": 11.95,
+      "end": 13.6
+    },
+    {
+      "text": "怎会如此神力",
+      "start": 13.9,
+      "end": 15.55
+    },
+    {
+      "text": "我乃河南卫华造吊车滴～",
+      "start": 15.6,
+      "end": 18.7
+    },
+    {
+      "text": "这么高你也够得着",
+      "start": 21.1,
+      "end": 23.2
+    },
+    {
+      "text": "起升130米 43层楼",
+      "start": 23.35,
+      "end": 24.85
+    },
+    {
+      "text": "还能空中翻身",
+      "start": 24.85,
+      "end": 26.15
+    },
+    {
+      "text": "我这宫殿矮",
+      "start": 28.55,
+      "end": 30.5
+    },
+    {
+      "text": "装得下吗",
+      "start": 30.5,
+      "end": 32.35
+    },
+    {
+      "text": "新中式 整机矮三成",
+      "start": 32.7,
+      "end": 34.9
+    },
+    {
+      "text": "卫华起重 大国重器",
+      "start": 36.0,
+      "end": 38.3
+    }
+  ],
+  "voices": [
+    {
+      "src": "voice/t-01-主角.wav",
+      "start": 0.05,
+      "speaker": "主角",
+      "line": "这起重机，得换个方法卖了"
+    },
+    {
+      "src": "voice/t-03-主角.wav",
+      "start": 7.449999999999999,
+      "speaker": "主角",
+      "line": "3800 吨，约 2500 辆小轿车"
+    },
+    {
+      "src": "voice/t-05-主角.wav",
+      "start": 15.700000000000001,
+      "speaker": "主角",
+      "line": "我乃河南卫华造吊车滴～"
+    },
+    {
+      "src": "voice/t-07-主角.wav",
+      "start": 23.35,
+      "speaker": "主角",
+      "line": "起升 130 米，43 层楼，还能空中翻身"
+    },
+    {
+      "src": "voice/t-09-主角.wav",
+      "start": 32.5,
+      "speaker": "主角",
+      "line": "新中式，整机矮三成"
+    },
+    {
+      "src": "voice/t-10-主角.wav",
+      "start": 36.0,
+      "speaker": "主角",
+      "line": "卫华起重，大国重器"
+    }
+  ],
+  "sfx": [
+    {
+      "src": "sfx/whoosh.wav",
+      "start": 1.6,
+      "note": "穿越转场"
+    },
+    {
+      "src": "sfx/whoosh.wav",
+      "start": 8.0,
+      "note": "浪头扑镜"
+    },
+    {
+      "src": "sfx/impact.wav",
+      "start": 13.0,
+      "note": "巨石落水"
+    },
+    {
+      "src": "sfx/impact.wav",
+      "start": 21.2,
+      "note": "补天合缝"
+    },
+    {
+      "src": "sfx/whoosh.wav",
+      "start": 21.6,
+      "note": "入海"
+    },
+    {
+      "src": "sfx/hit.wav",
+      "start": 28.5,
+      "note": "落版重音"
+    }
+  ],
+  "bgm": {
+    "src": "music/epic-bed.wav",
+    "volume": 0.4
+  },
+  "loudness": {
+    "targetLufs": -9.5,
+    "truePeak": -1
+  },
+  "claims": [
+    {
+      "text": "3800 吨",
+      "source": "https://www.cranewh.com/detail/5679.html"
+    },
+    {
+      "text": "约 2500 辆小轿车（3800 ÷ 1.5）",
+      "source": "D-起重机内容工厂/docs/PRD.md 尺寸类比 A1"
+    },
+    {
+      "text": "上下双小车各 1900 吨、双钩抬吊、空中翻身",
+      "source": "https://www.cranewh.com/detail/5739.html"
+    },
+    {
+      "text": "起升 130 米 / 43 层楼",
+      "source": "https://www.cranewh.com/detail/5679.html"
+    },
+    {
+      "text": "新中式整机高度降低约 30%（待市场部确认口径）",
+      "source": "http://craneweihua.com/findnews/183"
+    }
+  ]
+}

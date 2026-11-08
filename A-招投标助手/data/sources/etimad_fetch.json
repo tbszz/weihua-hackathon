@@ -1,0 +1,8 @@
+{
+  "source_url": "https://tenders.etimad.sa/Tender/AllTendersForVisitor",
+  "retrieved_url": "https://tenders.etimad.sa/Tender/AllTendersForVisitor",
+  "http_status": 200,
+  "fetched_at": "2026-11-07T15:23:23.263270+00:00",
+  "snapshot_path": "data/sources/etimad_raw.txt",
+  "content_type": "text/html"
+}

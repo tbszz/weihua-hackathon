@@ -1,0 +1,32 @@
+{
+  "skillProvenance": {
+    "name": "solo-graphic-generation",
+    "version": "2026.08.06.21.24.57",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": "c:/Users/ASUS/.trae-cn/builtin/design/default/skills/solo-graphic-generation",
+    "recorded_at": "2026-11-07T05:35:30Z"
+  },
+  "operation": "create-image-project",
+  "requestedSizeVerbatim": "portrait 3:4",
+  "actualImageSize": "portrait_4_3",
+  "userConfirmed": true,
+  "assetCount": 2,
+  "assets": [
+    {
+      "filename": "david-character-design.jpg",
+      "title": "大卫 — 卫华制造根基IP形象",
+      "deliverableType": "character-mascot",
+      "intendedAspect": "portrait 3:4",
+      "status": "generated",
+      "canvasNodeId": "image-001"
+    },
+    {
+      "filename": "hanna-character-design.jpg",
+      "title": "小华 — 卫华数智创新IP形象",
+      "deliverableType": "character-mascot",
+      "intendedAspect": "portrait 3:4",
+      "status": "generated",
+      "canvasNodeId": "image-002"
+    }
+  ]
+}

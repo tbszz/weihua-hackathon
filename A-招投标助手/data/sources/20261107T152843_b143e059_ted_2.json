@@ -1,0 +1,23 @@
+{
+  "source_url": "https://api.ted.europa.eu/v3/notices/search",
+  "retrieved_url": "https://api.ted.europa.eu/v3/notices/search",
+  "method": "POST",
+  "request_json": {
+    "query": "publication-number=657838-2026",
+    "fields": [
+      "publication-number",
+      "notice-title",
+      "publication-date",
+      "deadline-receipt-tender-date-lot",
+      "buyer-name",
+      "place-of-performance",
+      "description-proc"
+    ],
+    "limit": 1
+  },
+  "http_status": 200,
+  "fetched_at": "2026-11-07T15:28:34.385065+00:00",
+  "completed_at": "2026-11-07T15:28:35.738113+00:00",
+  "content_type": "application/json",
+  "snapshot_path": "data/sources/20261107T152843_b143e059_ted_2.txt"
+}

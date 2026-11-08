@@ -1,0 +1,75 @@
+[
+  {
+    "source": "UNGM",
+    "status": "ok",
+    "checked_at": "2026-11-07T15:31:52.544409+00:00",
+    "fallback": false,
+    "cached": false,
+    "live_count": 2,
+    "cached_count": 0,
+    "notice_count": 2,
+    "snapshot_paths": [
+      "data/sources/20261107T153204_79fbfa2d_ungm_0.txt",
+      "data/sources/20261107T153204_79fbfa2d_ungm_1.txt"
+    ]
+  },
+  {
+    "source": "OyuTolgoi",
+    "status": "ok",
+    "checked_at": "2026-11-07T15:31:52.545018+00:00",
+    "fallback": false,
+    "cached": false,
+    "live_count": 1,
+    "cached_count": 0,
+    "notice_count": 1,
+    "snapshot_paths": [
+      "data/sources/20261107T153204_79fbfa2d_oyutolgoi_0.txt"
+    ]
+  },
+  {
+    "source": "WorldBank",
+    "status": "ok",
+    "checked_at": "2026-11-07T15:31:52.545018+00:00",
+    "fallback": false,
+    "cached": false,
+    "live_count": 9,
+    "cached_count": 0,
+    "notice_count": 9,
+    "snapshot_paths": [
+      "data/sources/20261107T153204_79fbfa2d_worldbank_0.txt"
+    ]
+  },
+  {
+    "source": "TED",
+    "status": "ok",
+    "checked_at": "2026-11-07T15:31:52.546026+00:00",
+    "fallback": false,
+    "cached": false,
+    "message": "指定 deadline-receipt-tender-date 字段被接口拒绝（400）；改用官方支持的 -lot 字段成功。",
+    "compatibility_retry": true,
+    "live_count": 11,
+    "cached_count": 0,
+    "notice_count": 11,
+    "snapshot_paths": [
+      "data/sources/20261107T153204_79fbfa2d_ted_0.txt",
+      "data/sources/20261107T153204_79fbfa2d_ted_1.txt",
+      "data/sources/20261107T153204_79fbfa2d_ted_2.txt"
+    ]
+  },
+  {
+    "source": "Etimad",
+    "status": "degraded",
+    "checked_at": "2026-11-07T15:31:52.546026+00:00",
+    "fallback": false,
+    "cached": false,
+    "reachable": true,
+    "parsed": false,
+    "message": "HTTPS 访客页可达；仅检测可达性，未解析公告，无实时结果（可能是访客验证页）。",
+    "live_count": 0,
+    "cached_count": 0,
+    "notice_count": 0,
+    "snapshot_paths": [
+      "data/sources/20261107T153204_79fbfa2d_etimad_0.txt"
+    ]
+  }
+]

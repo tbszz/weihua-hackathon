@@ -1,0 +1,58 @@
+{
+  "version": "2026-11-07",
+  "specs": [
+    {
+      "id": "spec-3800t-107m",
+      "name": "3800t-107m 双主梁门式起重机",
+      "shortName": "3800t 门机",
+      "type": "gantry",
+      "girder": "double",
+      "templateId": "gantry-double-girder",
+      "fields": {
+        "ratedLoad_t": { "value": 3800, "status": "official", "source": "https://www.cranewh.com/detail/5679.html", "sourceLabel": "卫华官网 5679" },
+        "span_m": { "value": 107, "status": "official", "source": "https://www.cranewh.com/detail/5679.html", "sourceLabel": "卫华官网 5679" },
+        "overallHeight_m": { "value": 166.5, "status": "official", "source": "https://www.cranewh.com/detail/5739.html", "sourceLabel": "卫华官网 5739" },
+        "liftHeight_m": { "value": 130, "status": "official", "source": "https://www.cranewh.com/detail/5739.html", "sourceLabel": "卫华官网 5739" },
+        "trolleys": { "value": [{ "name": "上小车", "load_t": 1900 }, { "name": "下小车", "load_t": 1900 }], "status": "official", "source": "https://www.cranewh.com/detail/5679.html", "sourceLabel": "卫华官网 5679" },
+        "site": { "value": "浙江温州浙海风母港", "status": "official", "source": "https://www.cranewh.com/detail/5679.html", "sourceLabel": "卫华官网 5679" }
+      }
+    },
+    {
+      "id": "spec-3000t",
+      "name": "3000t 门式起重机",
+      "shortName": "3000t 门机",
+      "type": "gantry",
+      "girder": "double",
+      "templateId": "gantry-double-girder",
+      "fields": {
+        "ratedLoad_t": { "value": 3000, "status": "official", "source": "https://www.cranewh.com/detail/5585.html", "sourceLabel": "卫华官网 5585" },
+        "liftHeight_m": { "value": 120, "status": "official", "source": "https://www.cranewh.com/detail/5585.html", "sourceLabel": "卫华官网 5585" }
+      }
+    },
+    {
+      "id": "spec-3600t",
+      "name": "3600t 门式起重机",
+      "shortName": "3600t 门机",
+      "type": "gantry",
+      "girder": "double",
+      "templateId": "gantry-double-girder",
+      "fields": {
+        "ratedLoad_t": { "value": 3600, "status": "official", "source": "https://www.cranewh.com/detail/5474.html", "sourceLabel": "卫华官网 5474" },
+        "liftHeight_m": { "value": 128, "status": "official", "source": "https://www.cranewh.com/detail/5474.html", "sourceLabel": "卫华官网 5474" }
+      }
+    },
+    {
+      "id": "spec-new-chinese-bridge",
+      "name": "新中式吊钩桥式起重机 · 示例配置",
+      "shortName": "新中式桥机",
+      "type": "bridge",
+      "girder": "double",
+      "templateId": "new-chinese-bridge",
+      "fields": {
+        "ratedLoadRange_t": { "value": [5, 1000], "status": "official", "source": "https://weihuacraneglobal.com/news/0c0418f50a5f7bb47fa871d498d80f22.html", "sourceLabel": "WEIHUA Global" },
+        "spanRange_m": { "value": [10.5, 40], "status": "official", "source": "https://weihuacraneglobal.com/news/0c0418f50a5f7bb47fa871d498d80f22.html", "sourceLabel": "WEIHUA Global" },
+        "liftHeightRange_m": { "value": [6, 24], "status": "official", "source": "https://weihuacraneglobal.com/news/0c0418f50a5f7bb47fa871d498d80f22.html", "sourceLabel": "WEIHUA Global" }
+      }
+    }
+  ]
+}

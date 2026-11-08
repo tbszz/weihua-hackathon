@@ -1,5 +1,7 @@
 # 作品 E：视频生产线 PRD（模块代号 `video`）
 
+> **2026-11-07 本轮实施范围，以本条及 [P0-demo.md](P0-demo.md) 为准：**P0 优先打通素材上传、主题/模板、可编辑故事板、实际中文配音、自动剪辑包装、MP4 导出和真实 QC；IP 可暂缺。公众号推文和 feishu-towechat 已移交作品 D，本作品交付视频资产供 D 使用。禁止将 ChatCut 离线生成补充素材作为 P0 前提。重工业 AIGC 短视频独立为 P1 Skill，可调用主 Agent 的自动剪辑能力，详见 [P1 Skill 设计](P1-industrial-aigc-skill.md)。下文旧版的公众号发布 Agent、IP P0 产量与离线 AI 空镜池为历史完整规划，不是本轮验收项。
+
 > 版本 v0.1 ｜ 2026-11-06 ｜ 遵守 [`PRD约定.md`](../../PRD约定.md)
 > 依赖底座 `core`（Agent Runtime、编排器、检索、Claim、人工复核、飞书），能力按约定第 3 节直接引用，本文不重新设计。
 > 上游：作品 D（`studio`）产出的 `MediaAsset`；下游：公众号（`Article`）。

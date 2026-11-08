@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>报价智能体 · 协议审阅</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">WH</span><span>卫华 AI 工作台</span></div>
+        <div class="side-caption">报价智能体 / P0 演示</div>
+        <nav class="nav-list" aria-label="主导航">
+          <button class="nav-item active" data-nav="review"><span>◈</span> 协议审阅</button>
+          <button class="nav-item" data-nav="tasks"><span>▱</span> 任务列表 <em id="task-count">0</em></button>
+          <button class="nav-item" data-nav="knowledge"><span>✦</span> 知识审核 <em id="knowledge-count">0</em></button>
+          <button class="nav-item" data-nav="evaluation"><span>⌁</span> 评测面板</button>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="rule-card"><div class="rule-pulse"></div><div><strong>规则引擎在线</strong><span>QT-RULES v0.3-demo</span></div></div>
+          <div class="user-chip"><div class="avatar">报</div><div><strong>报价员 A</strong><span>本地演示账号</span></div><span class="dots">•••</span></div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div class="breadcrumb"><span>报价智能体</span><b>/</b><strong>协议审阅</strong><span id="filename">等待上传协议</span></div>
+          <div class="top-actions"><span class="mode-badge"><i></i> 本地模式</span><button class="ghost-btn" id="preview-feishu">飞书消息预览</button><button class="primary-btn" id="load-demo">载入演示协议 <span>↗</span></button></div>
+        </header>
+
+        <section class="hero-row">
+          <div><p class="eyebrow">QUOTE REVIEW / P0</p><h1>把整份协议，变成一张<br /><em>可核验的报价地图。</em></h1><p class="hero-copy">规则先判，证据跟上。报价员只需要确认真正影响成本和风险的条款。</p></div>
+          <div class="hero-annotation"><span class="annotation-line"></span><span>当前任务</span><strong id="task-id">尚未开始</strong><small>上传或载入演示协议后生成</small></div>
+        </section>
+
+        <section class="stat-strip" aria-label="分析摘要">
+          <div class="stat-card"><span>非标项</span><strong id="stat-nonstandard">—</strong><i class="orange">需加价核对</i></div>
+          <div class="stat-card"><span>模糊项</span><strong id="stat-ambiguous">—</strong><i class="yellow">需客户澄清</i></div>
+          <div class="stat-card"><span>不满足</span><strong id="stat-unsatisfied">—</strong><i class="red">技术确认</i></div>
+          <div class="stat-card"><span>商务风险</span><strong id="stat-risk">—</strong><i class="red">高风险优先</i></div>
+          <div class="stat-card stat-progress"><span>审阅进度</span><strong id="stat-progress">等待分析</strong><div class="progress-track"><b id="progress-bar"></b></div></div>
+        </section>
+
+        <section class="workspace-grid">
+          <div class="document-panel panel">
+            <div class="panel-head"><div><div class="panel-kicker">01 / 原文证据</div><h2>客户技术协议 <span id="page-count">—</span></h2></div><label class="upload-btn" for="file-input">上传文本协议 <input id="file-input" type="file" accept=".txt,.md,text/plain,text/markdown" /></label></div>
+            <div class="legend"><span><i class="legend-swatch nonstandard"></i>非标</span><span><i class="legend-swatch ambiguous"></i>模糊</span><span><i class="legend-swatch unsatisfied"></i>不满足</span><span><i class="legend-swatch deviation"></i>可偏离</span><span class="legend-note">点击高亮查看依据</span></div>
+            <div class="document-meta"><span id="doc-redact">入口已启用脱敏</span><span>文字层解析 · 规则审查</span><span id="doc-updated">尚未解析</span></div>
+            <div id="document-content" class="document-content empty-state"><div class="empty-icon">⌁</div><strong>先载入一份协议</strong><p>推荐点击右上角“载入演示协议”，马上查看完整闭环。</p></div>
+          </div>
+
+          <div class="review-panel panel">
+            <div class="tabs" role="tablist"><button class="tab active" data-tab="findings">五类清单 <span id="finding-count">0</span></button><button class="tab" data-tab="risks">风险偏离表 <span id="risk-count">0</span></button><button class="tab" data-tab="knowledge">知识沉淀 <span id="kb-count">0</span></button></div>
+            <div id="tab-findings" class="tab-panel active"><div class="filter-row"><span>规则命中</span><select id="label-filter"><option value="全部">全部标签</option><option>非标</option><option>模糊</option><option>不满足</option><option>可偏离</option><option>标配</option></select><label><input type="checkbox" id="unconfirmed-only" /> 只看未确认</label></div><div id="findings-list" class="findings-list"><div class="list-empty">分析完成后显示逐条判断。</div></div></div>
+            <div id="tab-risks" class="tab-panel"><div class="risk-summary"><span>风险优先级由规则引擎决定</span><button class="mini-btn" data-export="risk-csv">导出 CSV</button></div><div id="risks-list" class="risks-list"><div class="list-empty">暂无风险条款。</div></div></div>
+            <div id="tab-knowledge" class="tab-panel"><div class="risk-summary"><span>改判后自动生成，组长审核后入库</span><button class="mini-btn" data-export="sop-md">导出 SOP</button></div><div id="knowledge-list" class="knowledge-list"><div class="list-empty">还没有人工改判条目。</div></div></div>
+          </div>
+        </section>
+
+        <footer class="statusbar"><span><i class="status-dot"></i> 规则审查服务正常</span><span>规则版本 <strong>QT-RULES v0.3-demo</strong></span><span>所有判断均带协议原文 + 依据条目出处</span><div class="status-actions"><button class="text-btn" data-export="params-csv">导出需求参数表</button><button class="text-btn" data-export="quote-result">下载 QuoteResult</button></div></footer>
+      </main>
+    </div>
+
+    <div id="detail-drawer" class="drawer" aria-hidden="true"><div class="drawer-backdrop"></div><aside class="drawer-body"><div class="drawer-head"><div><span class="panel-kicker">JUDGEMENT DETAIL</span><h2 id="drawer-title">判断详情</h2></div><button class="close-btn" id="close-drawer">×</button></div><div id="drawer-content"></div></aside></div>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

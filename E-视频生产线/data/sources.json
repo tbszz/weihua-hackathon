@@ -1,0 +1,12 @@
+{
+  "retrieved_at": "2026-11-07",
+  "article": "https://www.cranewh.com/detail/5739.html",
+  "article_date": "2026-07-06",
+  "usage": "本地 P0 演示引用，未授权商业再发布；不下载官网视频",
+  "images": [
+    {"path": "public/demo/official-wide.jpg", "url": "https://img.cranewh.com/uploads/20260706/1783299350268753.jpg"},
+    {"path": "public/demo/official-lift.jpg", "url": "https://img.cranewh.com/uploads/20260706/1783299355347716.jpg"},
+    {"path": "public/demo/official-port.jpg", "url": "https://img.cranewh.com/uploads/20260706/1783299359580660.jpg"}
+  ],
+  "verified_facts": {"rated_load_t": 3800, "overall_height_m": 166.5, "hoisting_height_m": 130, "single_trolley_t": 1900, "lift_completed": "2026-07-03"}
+}

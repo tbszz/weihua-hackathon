@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卫华 AI 工作台</title>
+    <style id="theme-vars">
+/* 卫华 AI 工作台 品牌令牌 */
+:root {
+  --wh-red: #D7000F;
+  --wh-red-dark: #A3000B;
+  --wh-red-light: #FCE8EA;
+  --wh-red-tint: #F9D0D4;
+  --wh-ink: #1F2329;
+  --wh-ink-2: #646A73;
+  --wh-ink-3: #8F959E;
+  --wh-bg: #F5F6F7;
+  --wh-surface: #FFFFFF;
+  --wh-surface-2: #F0F1F2;
+  --wh-line: #E5E6EB;
+  --wh-line-2: #DEE0E3;
+  --wh-blue: #2B7DE9;
+  --wh-yellow: #F5B800;
+  --wh-ok: #2EA121;
+  --wh-warn: #F5B800;
+  --wh-danger: #D7000F;
+  --wh-r-xs: 2px;
+  --wh-r-sm: 4px;
+  --wh-r-md: 8px;
+  --wh-r-lg: 16px;
+  --wh-r-pill: 999px;
+}
+:root {
+  --wh-background: #F5F6F7;
+  --wh-foreground: #1F2329;
+  --wh-card: #FFFFFF;
+  --wh-card-foreground: #1F2329;
+  --wh-popover: #FFFFFF;
+  --wh-popover-foreground: #1F2329;
+  --wh-primary: #D7000F;
+  --wh-primary-foreground: #FFFFFF;
+  --wh-muted: #F0F1F2;
+  --wh-muted-foreground: #646A73;
+  --wh-border: #E5E6EB;
+  --wh-input: #E5E6EB;
+  --wh-ring: #D7000F;
+  --wh-radius-sm: 4px;
+  --wh-radius-md: 8px;
+  --wh-radius-lg: 16px;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--wh-background);
+    --color-foreground: var(--wh-foreground);
+    --color-card: var(--wh-card);
+    --color-card-foreground: var(--wh-card-foreground);
+    --color-popover: var(--wh-popover);
+    --color-popover-foreground: var(--wh-popover-foreground);
+    --color-primary: var(--wh-primary);
+    --color-primary-foreground: var(--wh-primary-foreground);
+    --color-muted: var(--wh-muted);
+    --color-muted-foreground: var(--wh-muted-foreground);
+    --color-border: var(--wh-border);
+    --color-input: var(--wh-input);
+    --color-ring: var(--wh-ring);
+    --radius-sm: var(--wh-radius-sm);
+    --radius-md: var(--wh-radius-md);
+    --radius-lg: var(--wh-radius-lg);
+  }
+  @layer base {
+    body { background: var(--wh-background); color: var(--wh-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--wh-background); }
+      .text-background { color: var(--wh-background); }
+      .border-background { border-color: var(--wh-background); }
+      .ring-background { --tw-ring-color: var(--wh-background); }
+      .bg-foreground { background-color: var(--wh-foreground); }
+      .text-foreground { color: var(--wh-foreground); }
+      .border-foreground { border-color: var(--wh-foreground); }
+      .ring-foreground { --tw-ring-color: var(--wh-foreground); }
+      .bg-card { background-color: var(--wh-card); }
+      .text-card { color: var(--wh-card); }
+      .border-card { border-color: var(--wh-card); }
+      .ring-card { --tw-ring-color: var(--wh-card); }
+      .bg-card-foreground { background-color: var(--wh-card-foreground); }
+      .text-card-foreground { color: var(--wh-card-foreground); }
+      .border-card-foreground { border-color: var(--wh-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--wh-card-foreground); }
+      .bg-popover { background-color: var(--wh-popover); }
+      .text-popover { color: var(--wh-popover); }
+      .border-popover { border-color: var(--wh-popover); }
+      .ring-popover { --tw-ring-color: var(--wh-popover); }
+      .bg-popover-foreground { background-color: var(--wh-popover-foreground); }
+      .text-popover-foreground { color: var(--wh-popover-foreground); }
+      .border-popover-foreground { border-color: var(--wh-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--wh-popover-foreground); }
+      .bg-primary { background-color: var(--wh-primary); }
+      .text-primary { color: var(--wh-primary); }
+      .border-primary { border-color: var(--wh-primary); }
+      .ring-primary { --tw-ring-color: var(--wh-primary); }
+      .bg-primary-foreground { background-color: var(--wh-primary-foreground); }
+      .text-primary-foreground { color: var(--wh-primary-foreground); }
+      .border-primary-foreground { border-color: var(--wh-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--wh-primary-foreground); }
+      .bg-muted { background-color: var(--wh-muted); }
+      .text-muted { color: var(--wh-muted); }
+      .border-muted { border-color: var(--wh-muted); }
+      .ring-muted { --tw-ring-color: var(--wh-muted); }
+      .bg-muted-foreground { background-color: var(--wh-muted-foreground); }
+      .text-muted-foreground { color: var(--wh-muted-foreground); }
+      .border-muted-foreground { border-color: var(--wh-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--wh-muted-foreground); }
+      .bg-border { background-color: var(--wh-border); }
+      .text-border { color: var(--wh-border); }
+      .border-border { border-color: var(--wh-border); }
+      .ring-border { --tw-ring-color: var(--wh-border); }
+      .bg-input { background-color: var(--wh-input); }
+      .text-input { color: var(--wh-input); }
+      .border-input { border-color: var(--wh-input); }
+      .ring-input { --tw-ring-color: var(--wh-input); }
+      .bg-ring { background-color: var(--wh-ring); }
+      .text-ring { color: var(--wh-ring); }
+      .border-ring { border-color: var(--wh-ring); }
+      .ring-ring { --tw-ring-color: var(--wh-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="font-sans antialiased" style="font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;">
+    <div data-viewport-mode="app-shell" class="wh-app">
+
+      <style id="critical-layout">
+        .wh-app { position: relative; }
+        .wh-topbar {
+          position: fixed; top: 0; left: 0; right: 0;
+          height: 64px; z-index: 50;
+          background: var(--wh-surface);
+          border-bottom: 1px solid var(--wh-line);
+          display: flex; align-items: center;
+          padding: 0 24px;
+          box-shadow: 0 1px 0 rgba(15,23,42,.04);
+        }
+        .wh-scroll {
+          margin-top: 64px;
+          height: calc(100vh - 64px);
+          overflow-y: auto;
+          background: var(--wh-bg);
+        }
+        .wh-content {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 24px 32px 96px;
+        }
+        .wh-logo {
+          font-weight: 700; font-size: 18px; color: var(--wh-red);
+          letter-spacing: .2px; white-space: nowrap;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .wh-logo-mark {
+          width: 28px; height: 28px; border-radius: var(--wh-r-sm);
+          background: var(--wh-red); color: #fff;
+          display: inline-flex; align-items: center; justify-content: center;
+          font-size: 15px; font-weight: 800;
+        }
+        .wh-nav { display: flex; align-items: center; gap: 10px; margin-left: 40px; flex: 1; }
+        .wh-nav-group { display: flex; align-items: center; gap: 4px; }
+        .wh-nav-label {
+          font-size: 11px; color: var(--wh-ink-3); font-weight: 500;
+          padding: 0 6px; letter-spacing: .3px; white-space: nowrap;
+        }
+        .wh-nav-sep { width: 1px; height: 16px; background: var(--wh-line); margin: 0 6px; }
+        .wh-nav-item {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 32px; padding: 0 10px; border-radius: var(--wh-r-sm);
+          font-size: 13px; color: var(--wh-ink-2); cursor: pointer;
+          white-space: nowrap; transition: background .15s, color .15s;
+          position: relative;
+        }
+        .wh-nav-item:hover { background: var(--wh-surface-2); color: var(--wh-ink); }
+        .wh-nav-item.is-active { background: var(--wh-red-light); color: var(--wh-red); font-weight: 600; }
+        .wh-nav-code { font-size: 10px; color: var(--wh-ink-3); font-weight: 600; }
+        .wh-badge-dot {
+          min-width: 16px; height: 16px; padding: 0 4px;
+          border-radius: var(--wh-r-pill); background: var(--wh-red);
+          color: #fff; font-size: 10px; font-weight: 700;
+          display: inline-flex; align-items: center; justify-content: center;
+          line-height: 1;
+        }
+        .wh-topright { display: flex; align-items: center; gap: 14px; }
+        .wh-mode-pill {
+          display: inline-flex; align-items: center; gap: 4px;
+          background: var(--wh-surface-2); border: 1px solid var(--wh-line);
+          border-radius: var(--wh-r-pill); padding: 3px;
+        }
+        .wh-mode-opt {
+          font-size: 12px; color: var(--wh-ink-3); padding: 4px 10px;
+          border-radius: var(--wh-r-pill); cursor: pointer; white-space: nowrap;
+          display: inline-flex; align-items: center; gap: 4px;
+        }
+        .wh-mode-opt.is-on { background: var(--wh-red); color: #fff; font-weight: 600; }
+        .wh-iconbtn {
+          position: relative; width: 32px; height: 32px; border-radius: var(--wh-r-sm);
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--wh-ink-2); cursor: pointer;
+        }
+        .wh-iconbtn:hover { background: var(--wh-surface-2); }
+        .wh-iconbtn .wh-badge-dot { position: absolute; top: -2px; right: -2px; }
+        .wh-account {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 13px; color: var(--wh-ink); cursor: pointer;
+          padding: 4px 8px; border-radius: var(--wh-r-sm);
+        }
+        .wh-account:hover { background: var(--wh-surface-2); }
+        .wh-account-avatar {
+          width: 24px; height: 24px; border-radius: 50%;
+          background: var(--wh-red); color: #fff;
+          font-size: 11px; font-weight: 700;
+          display: inline-flex; align-items: center; justify-content: center;
+        }
+        .wh-chain { margin-bottom: 28px; }
+        .wh-chain-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .wh-chain-title { font-size: 15px; font-weight: 700; color: var(--wh-ink); }
+        .wh-chain-tag {
+          font-size: 11px; color: var(--wh-red); background: var(--wh-red-light);
+          padding: 2px 8px; border-radius: var(--wh-r-pill); font-weight: 500;
+        }
+        .wh-chain-meta { font-size: 12px; color: var(--wh-ink-3); margin-left: auto; }
+        .wh-chain-row { display: flex; align-items: stretch; gap: 0; }
+        .wh-card {
+          flex: 1; background: var(--wh-surface); border: 1px solid var(--wh-line);
+          border-radius: var(--wh-r-md); padding: 18px 20px; cursor: pointer;
+          transition: transform .18s, box-shadow .18s, border-color .18s;
+          display: flex; flex-direction: column; gap: 10px; min-width: 0;
+        }
+        .wh-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px -8px rgba(15,23,42,.12); border-color: var(--wh-line-2); }
+        .wh-card-head { display: flex; align-items: center; gap: 10px; }
+        .wh-card-icon {
+          width: 36px; height: 36px; border-radius: var(--wh-r-sm);
+          background: var(--wh-red-light); color: var(--wh-red);
+          display: inline-flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .wh-card-title { font-size: 16px; font-weight: 600; color: var(--wh-ink); }
+        .wh-card-code { font-size: 11px; color: var(--wh-ink-3); font-weight: 600; margin-left: 4px; }
+        .wh-card-sub { font-size: 13px; color: var(--wh-ink-3); line-height: 1.5; }
+        .wh-card-foot { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
+        .wh-card-stat { font-size: 20px; font-weight: 700; color: var(--wh-red); font-variant-numeric: tabular-nums; line-height: 1; }
+        .wh-card-statlabel { font-size: 12px; color: var(--wh-ink-3); margin-left: 6px; }
+        .wh-card-flag {
+          font-size: 11px; font-weight: 600; color: #fff; background: var(--wh-red);
+          padding: 2px 8px; border-radius: var(--wh-r-pill);
+        }
+        .wh-arrow {
+          flex: 0 0 auto; width: 36px; display: flex; align-items: center; justify-content: center;
+          color: var(--wh-ink-3);
+        }
+        .wh-grid2 { display: grid; grid-template-columns: 6fr 4fr; gap: 24px; margin-top: 8px; }
+        .wh-panel {
+          background: var(--wh-surface); border: 1px solid var(--wh-line);
+          border-radius: var(--wh-r-md); padding: 18px 20px;
+        }
+        .wh-panel-title {
+          font-size: 15px; font-weight: 700; color: var(--wh-ink);
+          display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+        }
+        .wh-todo-row {
+          display: flex; align-items: center; gap: 12px;
+          min-height: 48px; padding: 12px 0;
+          border-bottom: 1px solid var(--wh-line);
+        }
+        .wh-todo-row:last-child { border-bottom: none; }
+        .wh-todo-prefix { font-size: 12px; font-weight: 700; color: var(--wh-ink-3); flex-shrink: 0; }
+        .wh-todo-text { font-size: 14px; color: var(--wh-ink); flex: 1; min-width: 0; }
+        .wh-tag {
+          font-size: 11px; font-weight: 600; padding: 2px 8px;
+          border-radius: var(--wh-r-sm); background: var(--wh-surface-2); color: var(--wh-ink-2);
+          white-space: nowrap;
+        }
+        .wh-tag-high { background: var(--wh-red-light); color: var(--wh-danger); }
+        .wh-link {
+          font-size: 13px; color: var(--wh-red); font-weight: 600;
+          white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .wh-link:hover { text-decoration: underline; }
+        .wh-chain-entry {
+          display: flex; flex-direction: column; gap: 8px;
+          padding: 12px 0; border-bottom: 1px solid var(--wh-line);
+        }
+        .wh-chain-entry:last-child { border-bottom: none; }
+        .wh-chain-entry-head { display: flex; align-items: center; justify-content: space-between; }
+        .wh-chain-entry-name { font-size: 13px; color: var(--wh-ink); font-weight: 500; }
+        .wh-path { display: inline-flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .wh-path-tag {
+          font-size: 11px; font-weight: 600; color: var(--wh-ink-2);
+          background: var(--wh-surface-2); padding: 2px 6px; border-radius: var(--wh-r-xs);
+        }
+        .wh-path-sep { color: var(--wh-ink-3); font-size: 11px; }
+        .wh-status { font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .wh-status-running { color: var(--wh-blue); }
+        .wh-status-done { color: var(--wh-ok); }
+        .wh-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .wh-security {
+          margin-top: 24px; background: var(--wh-surface); border: 1px solid var(--wh-line);
+          border-radius: var(--wh-r-md); padding: 14px 20px;
+          display: flex; align-items: center; gap: 20px;
+        }
+        .wh-security-icon { color: var(--wh-ok); display: inline-flex; align-items: center; }
+        .wh-security-metric { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .wh-security-num { font-size: 16px; font-weight: 600; color: var(--wh-ink); font-variant-numeric: tabular-nums; }
+        .wh-security-label { font-size: 13px; color: var(--wh-ink-3); }
+        .wh-security-sep { width: 1px; height: 28px; background: var(--wh-line); }
+        .wh-assistant {
+          position: fixed; right: 24px; bottom: 24px;
+          width: 320px; background: var(--wh-surface);
+          border: 1px solid var(--wh-line); border-radius: var(--wh-r-lg);
+          box-shadow: 0 8px 24px -8px rgba(15,23,42,.18);
+          padding: 16px; z-index: 60;
+          display: flex; flex-direction: column; gap: 12px;
+        }
+        .wh-assist-head { display: flex; align-items: center; gap: 10px; }
+        .wh-ip-avatar {
+          width: 40px; height: 40px; border-radius: 50%;
+          background: var(--wh-red); color: #fff;
+          display: inline-flex; align-items: center; justify-content: center;
+          font-size: 16px; font-weight: 700; position: relative; flex-shrink: 0;
+          box-shadow: inset 0 0 0 2px #fff;
+        }
+        .wh-ip-visor {
+          position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+          width: 18px; height: 6px; border-radius: 3px;
+          background: var(--wh-blue); opacity: .85;
+        }
+        .wh-assist-name { font-size: 14px; font-weight: 700; color: var(--wh-ink); line-height: 1.2; }
+        .wh-assist-sub { font-size: 12px; color: var(--wh-ink-3); }
+        .wh-assist-body { font-size: 13px; color: var(--wh-ink-2); line-height: 1.5; }
+        .wh-assist-input {
+          display: flex; align-items: center; gap: 8px;
+          background: var(--wh-surface-2); border: 1px solid var(--wh-line);
+          border-radius: var(--wh-r-pill); padding: 8px 14px;
+          font-size: 13px; color: var(--wh-ink-3);
+        }
+        .wh-assist-input i { color: var(--wh-red); }
+        @media (max-width: 1024px) {
+          .wh-chain-row { flex-direction: column; }
+          .wh-arrow { width: auto; height: 28px; transform: rotate(90deg); }
+          .wh-grid2 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+          .wh-nav { display: none; }
+          .wh-content { padding: 16px 16px 120px; }
+          .wh-assistant { width: calc(100vw - 32px); right: 16px; bottom: 16px; }
+          .wh-security { flex-wrap: wrap; }
+        }
+      </style>
+
+      <header class="wh-topbar">
+        <div class="wh-logo">
+          <span class="wh-logo-mark">卫</span>
+          <span>卫华 AI 工作台</span>
+        </div>
+        <nav class="wh-nav">
+          <div class="wh-nav-group">
+            <span class="wh-nav-label">营销获客链</span>
+            <a class="wh-nav-item"><span class="wh-nav-code">A</span>招投标助手</a>
+            <a class="wh-nav-item"><span class="wh-nav-code">B</span>报价智能体<span class="wh-badge-dot">2</span></a>
+            <a class="wh-nav-item"><span class="wh-nav-code">C</span>飞书跟进助手<span class="wh-badge-dot">1</span></a>
+          </div>
+          <span class="wh-nav-sep"></span>
+          <div class="wh-nav-group">
+            <span class="wh-nav-label">内容创作链</span>
+            <a class="wh-nav-item"><span class="wh-nav-code">D</span>起重机内容工厂</a>
+            <a class="wh-nav-item"><span class="wh-nav-code">E</span>视频生产线</a>
+          </div>
+        </nav>
+        <div class="wh-topright">
+          <div class="wh-mode-pill">
+            <span class="wh-mode-opt"><i data-lucide="cloud" style="width:14px;height:14px;"></i>云端</span>
+            <span class="wh-mode-opt is-on"><i data-lucide="shield-check" style="width:14px;height:14px;"></i>已脱敏</span>
+            <span class="wh-mode-opt"><i data-lucide="lock" style="width:14px;height:14px;"></i>仅本地</span>
+          </div>
+          <span class="wh-iconbtn"><i data-lucide="bell" style="width:18px;height:18px;"></i><span class="wh-badge-dot">3</span></span>
+          <span class="wh-account">
+            <span class="wh-account-avatar">A</span>
+            业务员·演示A
+            <i data-lucide="chevron-down" style="width:14px;height:14px;color:var(--wh-ink-3);"></i>
+          </span>
+        </div>
+      </header>
+
+      <main class="wh-scroll overflow-y-auto" data-scroll-region="primary">
+        <div class="wh-content">
+          <section>
+            <div class="wh-chain">
+              <div class="wh-chain-head">
+                <span class="wh-chain-title">营销获客链</span>
+                <span class="wh-chain-tag">A → B → C</span>
+                <span class="wh-chain-meta">从招标雷达到客户跟进的全链路</span>
+              </div>
+              <div class="wh-chain-row">
+                <div class="wh-card">
+                  <div class="wh-card-head">
+                    <span class="wh-card-icon"><i data-lucide="file-search" style="width:20px;height:20px;"></i></span>
+                    <span class="wh-card-title">招投标助手</span>
+                    <span class="wh-card-code">A</span>
+                  </div>
+                  <div class="wh-card-sub">多 Agent · 招标雷达 → 背调 → 材料</div>
+                  <div class="wh-card-foot">
+                    <span><span class="wh-card-stat">4</span><span class="wh-card-statlabel">新标讯</span></span>
+                    <span class="wh-status wh-status-running"><span class="wh-status-dot"></span>运行中</span>
+                  </div>
+                </div>
+                <div class="wh-arrow"><i data-lucide="arrow-right" style="width:18px;height:18px;"></i></div>
+                <div class="wh-card">
+                  <div class="wh-card-head">
+                    <span class="wh-card-icon"><i data-lucide="calculator" style="width:20px;height:20px;"></i></span>
+                    <span class="wh-card-title">报价智能体</span>
+                    <span class="wh-card-code">B</span>
+                    <span class="wh-card-flag">主打</span>
+                  </div>
+                  <div class="wh-card-sub">多 Agent · 主打作品</div>
+                  <div class="wh-card-foot">
+                    <span><span class="wh-card-stat">2</span><span class="wh-card-statlabel">待处理</span></span>
+                    <span class="wh-status wh-status-running"><span class="wh-status-dot"></span>运行中</span>
+                  </div>
+                </div>
+                <div class="wh-arrow"><i data-lucide="arrow-right" style="width:18px;height:18px;"></i></div>
+                <div class="wh-card">
+                  <div class="wh-card-head">
+                    <span class="wh-card-icon"><i data-lucide="message-square" style="width:20px;height:20px;"></i></span>
+                    <span class="wh-card-title">飞书跟进助手</span>
+                    <span class="wh-card-code">C</span>
+                  </div>
+                  <div class="wh-card-sub">单 Agent + Skills</div>
+                  <div class="wh-card-foot">
+                    <span><span class="wh-card-stat">1</span><span class="wh-card-statlabel">临期</span></span>
+                    <span class="wh-status wh-status-running"><span class="wh-status-dot"></span>运行中</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="wh-chain">
+              <div class="wh-chain-head">
+                <span class="wh-chain-title">内容创作链</span>
+                <span class="wh-chain-tag">D → E</span>
+                <span class="wh-chain-meta">从 3D 科普到 IP 出镜视频的产线</span>
+              </div>
+              <div class="wh-chain-row">
+                <div class="wh-card">
+                  <div class="wh-card-head">
+                    <span class="wh-card-icon"><i data-lucide="box" style="width:20px;height:20px;"></i></span>
+                    <span class="wh-card-title">起重机内容工厂</span>
+                    <span class="wh-card-code">D</span>
+                  </div>
+                  <div class="wh-card-sub">3D 科普 · 实景合成</div>
+                  <div class="wh-card-foot">
+                    <span><span class="wh-card-stat">12</span><span class="wh-card-statlabel">素材</span></span>
+                    <span class="wh-status wh-status-running"><span class="wh-status-dot"></span>运行中</span>
+                  </div>
+                </div>
+                <div class="wh-arrow"><i data-lucide="arrow-right" style="width:18px;height:18px;"></i></div>
+                <div class="wh-card">
+                  <div class="wh-card-head">
+                    <span class="wh-card-icon"><i data-lucide="video" style="width:20px;height:20px;"></i></span>
+                    <span class="wh-card-title">视频生产线</span>
+                    <span class="wh-card-code">E</span>
+                  </div>
+                  <div class="wh-card-sub">多 Agent · IP 出镜</div>
+                  <div class="wh-card-foot">
+                    <span><span class="wh-card-stat">1</span><span class="wh-card-statlabel">待审</span></span>
+                    <span class="wh-status wh-status-done"><span class="wh-status-dot"></span>就绪</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="wh-grid2">
+            <div class="wh-panel">
+              <div class="wh-panel-title">
+                <i data-lucide="list-checks" style="width:18px;height:18px;color:var(--wh-red);"></i>
+                我的待办
+              </div>
+              <div class="wh-todo-row">
+                <span class="wh-todo-prefix">[B]</span>
+                <span class="wh-todo-text">收到招标包「海湾港务 RMG 40t × 2」</span>
+                <span class="wh-tag">交接</span>
+                <a class="wh-link">接收<i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+              </div>
+              <div class="wh-todo-row">
+                <span class="wh-todo-prefix">[复核]</span>
+                <span class="wh-todo-text">报价结果 BJ-DEMO-001 非标6 · 高风险2</span>
+                <span class="wh-tag wh-tag-high">高</span>
+                <a class="wh-link">去复核<i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+              </div>
+              <div class="wh-todo-row">
+                <span class="wh-todo-prefix">[C]</span>
+                <span class="wh-todo-text">飞书群「温州3800t项目」有 3 条新沟通摘要</span>
+                <span class="wh-tag">跟进</span>
+                <a class="wh-link">查看<i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+              </div>
+            </div>
+            <div class="wh-panel">
+              <div class="wh-panel-title">
+                <i data-lucide="git-branch" style="width:18px;height:18px;color:var(--wh-red);"></i>
+                最近链路
+              </div>
+              <div class="wh-chain-entry">
+                <div class="wh-chain-entry-head">
+                  <span class="wh-chain-entry-name">chain_…A1 海湾港务 RMG</span>
+                  <a class="wh-link">查看<i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+                </div>
+                <div class="wh-path">
+                  <span class="wh-path-tag">A</span><span class="wh-path-sep">→</span>
+                  <span class="wh-path-tag">B</span><span class="wh-path-sep">→</span>
+                  <span class="wh-path-tag">C</span>
+                  <span class="wh-status wh-status-running" style="margin-left:8px;"><span class="wh-status-dot"></span>进行中</span>
+                </div>
+              </div>
+              <div class="wh-chain-entry">
+                <div class="wh-chain-entry-head">
+                  <span class="wh-chain-entry-name">chain_…B1 3800t 科普内容</span>
+                  <a class="wh-link">查看<i data-lucide="arrow-right" style="width:14px;height:14px;"></i></a>
+                </div>
+                <div class="wh-path">
+                  <span class="wh-path-tag">D</span><span class="wh-path-sep">→</span>
+                  <span class="wh-path-tag">E</span>
+                  <span class="wh-status wh-status-done" style="margin-left:8px;"><span class="wh-status-dot"></span>已完成</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="wh-security">
+            <span class="wh-security-icon"><i data-lucide="shield-check" style="width:22px;height:22px;"></i></span>
+            <div class="wh-security-metric">
+              <span class="wh-security-num">38</span>
+              <span class="wh-security-label">出域（次）</span>
+            </div>
+            <span class="wh-security-sep"></span>
+            <div class="wh-security-metric">
+              <span class="wh-security-num">412</span>
+              <span class="wh-security-label">脱敏（项）</span>
+            </div>
+            <span class="wh-security-sep"></span>
+            <div class="wh-security-metric">
+              <span class="wh-security-num">0</span>
+              <span class="wh-security-label">拦截（次）</span>
+            </div>
+            <span class="wh-security-sep"></span>
+            <div class="wh-security-metric">
+              <span class="wh-security-num">21</span>
+              <span class="wh-security-label">本地处理（次）</span>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <aside class="wh-assistant">
+        <div class="wh-assist-head">
+          <span class="wh-ip-avatar">华<span class="wh-ip-visor"></span></span>
+          <div>
+            <div class="wh-assist-name">小华</div>
+            <div class="wh-assist-sub">AI 助手</div>
+          </div>
+        </div>
+        <div class="wh-assist-body">有什么要帮忙？我可以帮你查标讯、做报价摘要、跟进飞书群消息。</div>
+        <div class="wh-assist-input">
+          <i data-lucide="send" style="width:14px;height:14px;"></i>
+          问小华...
+        </div>
+      </aside>
+
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

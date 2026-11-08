@@ -1,0 +1,30 @@
+{
+  "carWeight_t": {
+    "value": 1.5,
+    "unit": "t/辆",
+    "source": "https://www.cranewh.com/detail/5585.html",
+    "derivation": "官方类比：3000 t = 2000 辆轿车，3000 ÷ 2000 = 1.5 t/辆",
+    "status": "derived_from_official"
+  },
+  "truckWeight_t": {
+    "value": 15,
+    "unit": "t/辆",
+    "source": "https://www.cranewh.com/detail/5474.html",
+    "derivation": "PRD 收录的官方类比：3600 t = 240 辆卡车，反推 15 t/辆；当前抓取正文未复核到车辆句，发布前需人工复核",
+    "status": "pending_confirmation"
+  },
+  "floorHeight_m": {
+    "value": 3,
+    "unit": "m/层",
+    "source": "https://www.cranewh.com/detail/5585.html",
+    "derivation": "官方类比：起升高度 120 m = 40 层楼，120 ÷ 40 = 3 m/层",
+    "status": "derived_from_official"
+  },
+  "footballLength_m": {
+    "value": 105,
+    "unit": "m",
+    "source": "https://www.theifab.com/laws/latest/the-field-of-play/",
+    "derivation": "采用 105 m 标准足球场参照长度；属于通用类比常数，不是起重机产品参数",
+    "status": "reference"
+  }
+}

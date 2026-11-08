@@ -1,0 +1,444 @@
+{
+  "S0": {
+    "id": "task_sf4E0Nikp4gGRVPgjTUGjE5GzXZUIWu6",
+    "status": "completed",
+    "submit": {
+      "id": "task_sf4E0Nikp4gGRVPgjTUGjE5GzXZUIWu6",
+      "task_id": "task_sf4E0Nikp4gGRVPgjTUGjE5GzXZUIWu6",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110025
+    },
+    "last": {
+      "id": "task_sf4E0Nikp4gGRVPgjTUGjE5GzXZUIWu6",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94b5d9c85857.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110085;1794369285&q-key-time=1794110085;1794369285&q-header-list=&q-url-param-list=&q-signature=d696477d464cb4c5dc9431d89d19712a8c6c6af2",
+      "created_at": 1794110025,
+      "completed_at": 1794110088,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94b5d9c85857.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110085;1794369285&q-key-time=1794110085;1794369285&q-header-list=&q-url-param-list=&q-signature=d696477d464cb4c5dc9431d89d19712a8c6c6af2",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S0.mp4"
+  },
+  "T1": {
+    "id": "task_ZKPDXJkSrzlO93HVBx6WrRUDntm4SJ8i",
+    "status": "completed",
+    "submit": {
+      "id": "task_ZKPDXJkSrzlO93HVBx6WrRUDntm4SJ8i",
+      "task_id": "task_ZKPDXJkSrzlO93HVBx6WrRUDntm4SJ8i",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110173
+    },
+    "last": {
+      "id": "task_ZKPDXJkSrzlO93HVBx6WrRUDntm4SJ8i",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94db22013332.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110238;1794369438&q-key-time=1794110238;1794369438&q-header-list=&q-url-param-list=&q-signature=1d70a014004435b6e4e52cf73881687071ed416b",
+      "created_at": 1794110173,
+      "completed_at": 1794110241,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94db22013332.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110238;1794369438&q-key-time=1794110238;1794369438&q-header-list=&q-url-param-list=&q-signature=1d70a014004435b6e4e52cf73881687071ed416b",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\T1.mp4"
+  },
+  "S1a": {
+    "id": "task_1WMfJnd1meot3pvqpmvVHoTdC5ROMI2S",
+    "status": "completed",
+    "submit": {
+      "id": "task_1WMfJnd1meot3pvqpmvVHoTdC5ROMI2S",
+      "task_id": "task_1WMfJnd1meot3pvqpmvVHoTdC5ROMI2S",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110176
+    },
+    "last": {
+      "id": "task_1WMfJnd1meot3pvqpmvVHoTdC5ROMI2S",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dca0771163.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110244;1794369444&q-key-time=1794110244;1794369444&q-header-list=&q-url-param-list=&q-signature=1f7f4c9fac824117319b281f7d081ff3042e509c",
+      "created_at": 1794110176,
+      "completed_at": 1794110247,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dca0771163.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110244;1794369444&q-key-time=1794110244;1794369444&q-header-list=&q-url-param-list=&q-signature=1f7f4c9fac824117319b281f7d081ff3042e509c",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S1a.mp4"
+  },
+  "S1b": {
+    "id": "task_sRuIhquPa8E1q08mY3nY1GhH5FRRwCg2",
+    "status": "completed",
+    "submit": {
+      "id": "task_sRuIhquPa8E1q08mY3nY1GhH5FRRwCg2",
+      "task_id": "task_sRuIhquPa8E1q08mY3nY1GhH5FRRwCg2",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110179
+    },
+    "last": {
+      "id": "task_sRuIhquPa8E1q08mY3nY1GhH5FRRwCg2",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dce7255825.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110245;1794369445&q-key-time=1794110245;1794369445&q-header-list=&q-url-param-list=&q-signature=f45e6dc2142932d593e6531319aebf14ba135eaa",
+      "created_at": 1794110179,
+      "completed_at": 1794110247,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dce7255825.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110245;1794369445&q-key-time=1794110245;1794369445&q-header-list=&q-url-param-list=&q-signature=f45e6dc2142932d593e6531319aebf14ba135eaa",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S1b.mp4"
+  },
+  "T2": {
+    "id": "task_gKqRPiyeAYzysylLZQWLwSgWbI1sYhlj",
+    "status": "completed",
+    "submit": {
+      "id": "task_gKqRPiyeAYzysylLZQWLwSgWbI1sYhlj",
+      "task_id": "task_gKqRPiyeAYzysylLZQWLwSgWbI1sYhlj",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110183
+    },
+    "last": {
+      "id": "task_gKqRPiyeAYzysylLZQWLwSgWbI1sYhlj",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dd2df41288.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110246;1794369446&q-key-time=1794110246;1794369446&q-header-list=&q-url-param-list=&q-signature=64033c1e1347fe2013791d1e47cc4bc496989dc1",
+      "created_at": 1794110183,
+      "completed_at": 1794110249,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dd2df41288.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110246;1794369446&q-key-time=1794110246;1794369446&q-header-list=&q-url-param-list=&q-signature=64033c1e1347fe2013791d1e47cc4bc496989dc1",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\T2.mp4"
+  },
+  "S2a": {
+    "id": "task_ubvylufRfAFNbeTPwSjajCgmrBXP87vq",
+    "status": "completed",
+    "submit": {
+      "id": "task_ubvylufRfAFNbeTPwSjajCgmrBXP87vq",
+      "task_id": "task_ubvylufRfAFNbeTPwSjajCgmrBXP87vq",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110186
+    },
+    "last": {
+      "id": "task_ubvylufRfAFNbeTPwSjajCgmrBXP87vq",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dec0c42315.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110253;1794369453&q-key-time=1794110253;1794369453&q-header-list=&q-url-param-list=&q-signature=61b4f5b269d525293dc0b4e457fa7887b1b02ffd",
+      "created_at": 1794110186,
+      "completed_at": 1794110256,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94dec0c42315.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110253;1794369453&q-key-time=1794110253;1794369453&q-header-list=&q-url-param-list=&q-signature=61b4f5b269d525293dc0b4e457fa7887b1b02ffd",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S2a.mp4"
+  },
+  "S2b": {
+    "id": "task_2gNEWWrdkpX6p8ReCpaqw1cXfDnA79db",
+    "status": "completed",
+    "submit": {
+      "id": "task_2gNEWWrdkpX6p8ReCpaqw1cXfDnA79db",
+      "task_id": "task_2gNEWWrdkpX6p8ReCpaqw1cXfDnA79db",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110192
+    },
+    "last": {
+      "id": "task_2gNEWWrdkpX6p8ReCpaqw1cXfDnA79db",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e38cc60537.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110272;1794369472&q-key-time=1794110272;1794369472&q-header-list=&q-url-param-list=&q-signature=64a5d7ae3f73ea85fc041faedafc7bad83c10d62",
+      "created_at": 1794110192,
+      "completed_at": 1794110274,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e38cc60537.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110272;1794369472&q-key-time=1794110272;1794369472&q-header-list=&q-url-param-list=&q-signature=64a5d7ae3f73ea85fc041faedafc7bad83c10d62",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S2b.mp4"
+  },
+  "S3a": {
+    "id": "task_GREJiyxTZzI5pndwLgj0BT1Xj70QCNr7",
+    "status": "completed",
+    "submit": {
+      "id": "task_GREJiyxTZzI5pndwLgj0BT1Xj70QCNr7",
+      "task_id": "task_GREJiyxTZzI5pndwLgj0BT1Xj70QCNr7",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110196
+    },
+    "last": {
+      "id": "task_GREJiyxTZzI5pndwLgj0BT1Xj70QCNr7",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e3c5735594.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110273;1794369473&q-key-time=1794110273;1794369473&q-header-list=&q-url-param-list=&q-signature=08fee5d9facd4413af351fcaf18b979667823257",
+      "created_at": 1794110196,
+      "completed_at": 1794110276,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e3c5735594.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110273;1794369473&q-key-time=1794110273;1794369473&q-header-list=&q-url-param-list=&q-signature=08fee5d9facd4413af351fcaf18b979667823257",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S3a.mp4"
+  },
+  "S3b": {
+    "id": "task_J1nFifcHnUKjvYapNkcrJZOVTwRp8nPv",
+    "status": "completed",
+    "submit": {
+      "id": "task_J1nFifcHnUKjvYapNkcrJZOVTwRp8nPv",
+      "task_id": "task_J1nFifcHnUKjvYapNkcrJZOVTwRp8nPv",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110199
+    },
+    "last": {
+      "id": "task_J1nFifcHnUKjvYapNkcrJZOVTwRp8nPv",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e540a82139.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110279;1794369479&q-key-time=1794110279;1794369479&q-header-list=&q-url-param-list=&q-signature=c8909002430a29dbd330db9785e4e9fc51bd05dd",
+      "created_at": 1794110199,
+      "completed_at": 1794110282,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94e540a82139.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110279;1794369479&q-key-time=1794110279;1794369479&q-header-list=&q-url-param-list=&q-signature=c8909002430a29dbd330db9785e4e9fc51bd05dd",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S3b.mp4"
+  },
+  "S3c": {
+    "id": "task_ERczTfuC4io9CUXqYpztO5shMlssgNXE",
+    "status": "completed",
+    "submit": {
+      "id": "task_ERczTfuC4io9CUXqYpztO5shMlssgNXE",
+      "task_id": "task_ERczTfuC4io9CUXqYpztO5shMlssgNXE",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110202
+    },
+    "last": {
+      "id": "task_ERczTfuC4io9CUXqYpztO5shMlssgNXE",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ea73896641.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110301;1794369501&q-key-time=1794110301;1794369501&q-header-list=&q-url-param-list=&q-signature=0d549cee1113eb39dab47ef4a260d4d7eff99edb",
+      "created_at": 1794110202,
+      "completed_at": 1794110304,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ea73896641.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110301;1794369501&q-key-time=1794110301;1794369501&q-header-list=&q-url-param-list=&q-signature=0d549cee1113eb39dab47ef4a260d4d7eff99edb",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S3c.mp4"
+  },
+  "S4a": {
+    "id": "task_YstMw5Xd4xT1o1IrCau2Dz1AQ7AYuJzN",
+    "status": "completed",
+    "submit": {
+      "id": "task_YstMw5Xd4xT1o1IrCau2Dz1AQ7AYuJzN",
+      "task_id": "task_YstMw5Xd4xT1o1IrCau2Dz1AQ7AYuJzN",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110206
+    },
+    "last": {
+      "id": "task_YstMw5Xd4xT1o1IrCau2Dz1AQ7AYuJzN",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ebfb325948.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110307;1794369507&q-key-time=1794110307;1794369507&q-header-list=&q-url-param-list=&q-signature=0d6845ade6dbac4ba39a9cdb5e58866e042bf4a2",
+      "created_at": 1794110206,
+      "completed_at": 1794110310,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ebfb325948.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110307;1794369507&q-key-time=1794110307;1794369507&q-header-list=&q-url-param-list=&q-signature=0d6845ade6dbac4ba39a9cdb5e58866e042bf4a2",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S4a.mp4"
+  },
+  "S4b": {
+    "id": "task_Ac7X7hUj69RfZY6EHI5OZTzkSCgq10cI",
+    "status": "completed",
+    "submit": {
+      "id": "task_Ac7X7hUj69RfZY6EHI5OZTzkSCgq10cI",
+      "task_id": "task_Ac7X7hUj69RfZY6EHI5OZTzkSCgq10cI",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110210
+    },
+    "last": {
+      "id": "task_Ac7X7hUj69RfZY6EHI5OZTzkSCgq10cI",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94f13c027165.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110328;1794369528&q-key-time=1794110328;1794369528&q-header-list=&q-url-param-list=&q-signature=382ecbe2d9ff2dc87f3bdaa7221b7db97c25f2b2",
+      "created_at": 1794110210,
+      "completed_at": 1794110331,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94f13c027165.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110328;1794369528&q-key-time=1794110328;1794369528&q-header-list=&q-url-param-list=&q-signature=382ecbe2d9ff2dc87f3bdaa7221b7db97c25f2b2",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S4b.mp4"
+  },
+  "S5": {
+    "id": "task_v5lC0U8EjIsCDVeYJXri6bLLtVmGJNYl",
+    "status": "completed",
+    "submit": {
+      "id": "task_v5lC0U8EjIsCDVeYJXri6bLLtVmGJNYl",
+      "task_id": "task_v5lC0U8EjIsCDVeYJXri6bLLtVmGJNYl",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "queued",
+      "progress": 0,
+      "created_at": 1794110213
+    },
+    "last": {
+      "id": "task_v5lC0U8EjIsCDVeYJXri6bLLtVmGJNYl",
+      "object": "video",
+      "model": "MiniMax-H3",
+      "status": "completed",
+      "progress": 100,
+      "video_url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ed8ae59722.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110313;1794369513&q-key-time=1794110313;1794369513&q-header-list=&q-url-param-list=&q-signature=5f763dc63b65de6f40e6c726549eda205f77ae76",
+      "created_at": 1794110213,
+      "completed_at": 1794110316,
+      "seconds": "4",
+      "metadata": {
+        "duration": 4,
+        "modality": "video",
+        "ratio": "adaptive",
+        "resolution": "768P",
+        "task_type": "generation",
+        "url": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b94ed8ae59722.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794110313;1794369513&q-key-time=1794110313;1794369513&q-header-list=&q-url-param-list=&q-signature=5f763dc63b65de6f40e6c726549eda205f77ae76",
+        "video_mode": "first_frame_to_video"
+      }
+    },
+    "file": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips\\S5.mp4"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "weihua-video-line-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "api": "tsx --env-file-if-exists=.env watch src/server/main.ts",
+    "start": "tsx --env-file-if-exists=.env src/server/main.ts",
+    "demo": "tsx src/server/demo.ts",
+    "studio": "remotion studio src/remotion/index.tsx",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:render": "vitest run tests/render-smoke.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run build",
+    "chuanyue": "tsx src/server/chuanyue.ts",
+    "chuanyue:keyframes": "tsx src/chuanyue/keyframes.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.269",
+    "@fastify/multipart": "^10.1.0",
+    "@fastify/static": "^10.1.0",
+    "@remotion/bundler": "^4.0.489",
+    "@remotion/renderer": "^4.0.489",
+    "@resvg/resvg-js": "2.6.2",
+    "@vitejs/plugin-react": "^6.0.3",
+    "fastify": "^5.10.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.489",
+    "vite": "^8.1.4",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.541",
+    "@types/node": "22.20.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3",
+    "vitest": "4.1.10"
+  }
+}

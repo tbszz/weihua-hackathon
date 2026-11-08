@@ -1,0 +1,53 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { JSDOM } from 'jsdom';
+import { Store,root } from '../src/store.mjs';
+import { createApp } from '../src/server.mjs';
+
+test('前端 DOM 集成：导航、表单、摘要确认、节点编辑、风险登记、月报、评测',async()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'follow-dom-'));
+ const store=new Store(path.join(dir,'state.json'));store.scan();
+ const server=createApp(store,{scheduler:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const origin=`http://127.0.0.1:${server.address().port}`;
+ const dom=new JSDOM(fs.readFileSync(path.join(root,'public/index.html'),'utf8'),{url:origin,runScripts:'outside-only',pretendToBeVisual:true});
+ const w=dom.window,doc=w.document;
+ w.fetch=(url,options)=>fetch(new URL(url,origin),options);w.scrollTo=()=>{};
+ w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
+ w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');};
+ const ready=async(fn)=>{for(let i=0;i<150;i++){if(fn())return;await new Promise(r=>setTimeout(r,10));}assert.fail('前端操作超时：'+doc.querySelector('#toast')?.textContent);};
+ const click=s=>{const el=doc.querySelector(s);assert.ok(el,'缺少控件：'+s);el.click();};
+ const submit=s=>doc.querySelector(s).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ const nav=async(name)=>{w.location.hash=name;await ready(()=>doc.querySelector(`nav a[data-page="${name}"]`)?.classList.contains('active'));};
+ try {
+  await w.eval(`(async()=>{${fs.readFileSync(path.join(root,'public/app.js'),'utf8')}\n})()`);
+  assert.match(doc.querySelector('h1').textContent,/每一次跟进/);
+  await nav('digest');click('[data-action="load-sample"]');assert.match(doc.querySelector('#digest-text').value,/40t/);
+  doc.querySelector('#digest-project').value=store.data.customers[1].id;
+  submit('#digest-form');await ready(()=>doc.querySelector('[data-action="confirm"]'));
+  assert.equal(store.data.customers[1].followups.length,0);
+  click('[data-action="confirm"]');await ready(()=>store.data.customers[1].followups.length===1&&doc.querySelector('.approval-bar .tag')?.textContent==='已确认');
+  assert.equal(store.data.customers[0].followups.length,0);
+  await nav('nodes');click('[data-action="edit-node"][data-id="node-1"]');
+  doc.querySelector('#edit-expected').value='2026-11-12';submit('#node-form');
+  await ready(()=>store.data.nodes[0].expected==='2026-11-12'&&!doc.querySelector('#node-dialog').open);
+  assert.match(store.data.nodes[0].reason,/主梁组焊/);
+  doc.querySelector('#node-search').value='制动器';doc.querySelector('#node-search').dispatchEvent(new w.Event('input'));
+  assert.equal(doc.querySelectorAll('#node-rows tr').length,1);
+  await nav('risks');click('[data-action="risk-sample"]');submit('#risk-form');
+  await ready(()=>doc.querySelector('[data-action="confirm"]'));
+  const before=store.data.risks.length;click('[data-action="confirm"]');await ready(()=>store.data.risks.length===before+1);
+  await nav('reports');submit('#report-form');await ready(()=>doc.querySelector('.report-pre'));
+  assert.match(doc.querySelector('.report-pre').textContent,/35.7%/);
+  assert.equal(store.data.reports[0].won,15);
+  await nav('connection');assert.ok(doc.querySelector('[data-action="sync-feishu"]'));
+  await nav('logs');click('[data-action="evals"]');await ready(()=>doc.querySelector('.panel-body .tag')?.textContent.includes('14 / 14'));
+  await nav('digest');
+  doc.querySelector('#digest-text').value='客户: 需要 <img src=x onerror=alert(1)> 2 台设备';
+  submit('#digest-form');await ready(()=>doc.querySelector('[data-action="confirm"]'));
+  assert.equal(doc.querySelectorAll('.draft-content img').length,0);
+  assert.ok(doc.querySelector('.draft-content').textContent.includes('<img'));
+ } finally {w.close();await new Promise(r=>server.close(r));fs.rmSync(dir,{recursive:true,force:true});}
+});

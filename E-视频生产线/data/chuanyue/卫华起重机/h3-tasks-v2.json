@@ -1,0 +1,23 @@
+{
+  "S2a": {
+    "id": "task_m9oMH6EXHs8jDS69sKLd2r4wlMfW4K5Q",
+    "status": "completed",
+    "prompt": "第一人称主观视角，4秒连续真人电影镜头。暴雨洪水中的大禹在前景正面对镜头说话，必须从头到尾持续自然动作：先抬手挡雨并向镜头靠近，嘴唇清晰连续地按普通话台词做口型，台词是“你是哪个部落的？怎会如此神力？”，说话时眉眼、下颌、胡须和肩膀同步运动，随后指向远处的洪水并回头示意身后的民众；背景挑土的人持续奔跑、搬运和喘气，雨水、衣服、洪流持续运动。镜头轻微手持但主体清晰，不能冻结、不能只做关键帧抖动、不能让人物闭嘴配音；画面不出现文字、字幕、水印或 logo。生成自然环境声和大禹的男性对白，嘴型与对白同步。",
+    "videoUrl": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b98ee32861731.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794114510;1794373710&q-key-time=1794114510;1794373710&q-header-list=&q-url-param-list=&q-signature=6b33d848288001bd09eb8f420c8558bacf2e17ec",
+    "output": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips-v2\\S2a.mp4"
+  },
+  "S3a": {
+    "id": "task_qfzvDDiwuNs12WIKBFbontQYwcwJKA0g",
+    "status": "completed",
+    "prompt": "第一人称主观视角，4秒连续真人电影镜头。女娲在前景正面对镜头说话，必须从头到尾持续自然动作：她先仰望天空裂缝，再低头看向镜头，嘴唇清晰连续地按普通话台词做口型，台词是“这么高你也够得着？”，说话时眼神、眉毛、下颌和嘴唇同步变化，双手抱住发光五彩石并向镜头迈半步，衣袖、发丝、耳饰持续随风飘动；火雨、云层和天空裂缝持续运动。镜头轻微推近但主体清晰，不能冻结、不能只做关键帧抖动、不能让人物闭嘴配音；画面不出现文字、字幕、水印或 logo。生成自然环境声和女娲的女性对白，嘴型与对白同步。",
+    "videoUrl": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b990352347430.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794114597;1794373797&q-key-time=1794114597;1794373797&q-header-list=&q-url-param-list=&q-signature=967af0467e2a37a5fa090340f9485dd9e4a9bfb4",
+    "output": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips-v2\\S3a.mp4"
+  },
+  "S4a": {
+    "id": "task_hbwsNmsoweQIrtT15PRJOMtWnZzVZwNO",
+    "status": "completed",
+    "prompt": "第一人称主观视角，4秒连续真人电影镜头。海底水晶宫里的龙王在前景正面对镜头说话，必须从头到尾持续自然动作：先张开双臂拦住镜头，再俯身靠近，嘴唇清晰连续地按普通话台词做口型，台词是“我这宫殿矮，装得下吗？”，说话时龙王的嘴、胡须、眉眼和肩膀同步运动，随后一只手指向低矮宫殿并夸张摇头；长须、衣袍、鱼群、气泡和水草持续运动。镜头轻微上下漂浮但主体清晰，不能冻结、不能只做关键帧抖动、不能让人物闭嘴配音；画面不出现文字、字幕、水印或 logo。生成自然环境声和龙王的低沉男性对白，嘴型与对白同步。",
+    "videoUrl": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b991dce686076.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794114705;1794373905&q-key-time=1794114705;1794373905&q-header-list=&q-url-param-list=&q-signature=a72fc35700e525b1bd638c36b1e3cdb828276819",
+    "output": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips-v2\\S4a.mp4"
+  }
+}

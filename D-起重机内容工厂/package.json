@@ -1,0 +1,25 @@
+{
+  "name": "weihua-crane-content-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "model:build": "node scripts/build-model.mjs",
+    "predev": "npm run model:build",
+    "dev": "concurrently -k -n API,WEB -c yellow,cyan \"node --watch src/server/index.js\" \"vite --host 0.0.0.0\"",
+    "build": "npm run model:build && vite build",
+    "start": "node src/server/index.js",
+    "test": "node --test src/server/*.test.js"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.181.0",
+    "undici": "^8.12.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
+    "concurrently": "^9.2.1",
+    "vite": "^7.2.2"
+  }
+}

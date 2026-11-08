@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "id": "image-001",
+      "title": "大卫 — 卫华制造根基IP形象",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1783078530000,
+      "devMetadata": {
+        "imageSrc": "assets/david-character-design.jpg"
+      },
+      "canvasData": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "小华 — 卫华数智创新IP形象",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1783078530000,
+      "devMetadata": {
+        "imageSrc": "assets/hanna-character-design.jpg"
+      },
+      "canvasData": {
+        "x": 480,
+        "y": 0
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "freeSize",
+    "projectName": "卫华IP形象设计"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "source_url": "https://api.ted.europa.eu/v3/notices/search",
+  "retrieved_url": "https://api.ted.europa.eu/v3/notices/search",
+  "method": "POST",
+  "request_json": {
+    "query": "classification-cpv=42414000",
+    "fields": [
+      "publication-number",
+      "notice-title",
+      "publication-date",
+      "deadline-receipt-tender-date-lot",
+      "buyer-name",
+      "place-of-performance",
+      "place-of-performance-country-lot",
+      "description-proc"
+    ],
+    "limit": 10
+  },
+  "http_status": 200,
+  "fetched_at": "2026-11-07T15:31:54.394766+00:00",
+  "completed_at": "2026-11-07T15:31:55.751230+00:00",
+  "content_type": "application/json",
+  "snapshot_path": "data/sources/20261107T153204_79fbfa2d_ted_1.txt"
+}

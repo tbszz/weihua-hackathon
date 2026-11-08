@@ -1,0 +1,16 @@
+{
+  "S3a": {
+    "id": "task_XKT2mN70XwZq6zVmkoRifdsQHI7Sayie",
+    "status": "completed",
+    "prompt": "4.45秒连续真人电影镜头，第一人称POV。女娲在前景侧身面对镜头说且只说一句普通话：“这么高你也够得着？”。严格禁止任何其他词语、旁白、背景人声、英语或乱码。嘴唇、眼神、眉毛和手指动作与这句对白同步；她边说边指向同一画面中完整可见的巨大橙红色卫华门式起重机，起重机吊钩和钢丝绳持续把发光五彩巨石向天空裂缝提升，人物、起重机、五彩石和裂缝全程同框，产品动作清楚可见。火雨、云层、衣袖和发丝持续运动。不要文字、字幕、水印、logo、HUD，不要冻结，不要关键帧抖动。生成女娲女性对白与环境声，口型严格同步。",
+    "videoUrl": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1b9ff2ea220760.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794121870;1794381070&q-key-time=1794121870;1794381070&q-header-list=&q-url-param-list=&q-signature=cc5194182940f3542d41da8933190e9a6e8c00b1",
+    "output": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips-v3\\S3a.mp4"
+  },
+  "S4a": {
+    "id": "task_CPOL96WkoZ4YwpSeOrKfNvKrgc1VAAUc",
+    "status": "completed",
+    "prompt": "4.45秒连续真人电影镜头，第一人称POV。海底水晶宫里龙王在前景正面对镜头说且只说一句普通话：“我这宫殿矮，装得下吗？”。严格禁止任何其他词语、旁白、背景人声、英语或乱码。嘴唇、胡须、眉眼和手势与这句对白同步；他说话时持续指向同一画面里的橙白色低矮桥式卫华起重机，起重机沿轨道移动，吊钩和钢丝绳持续把金色定海神针吊起并平稳横移，人物、起重机、轨道、吊钩和神针全程同框，产品动作清楚可见。龙王从傲慢变惊讶，鱼群、气泡和水草持续运动。不要文字、字幕、水印、logo、HUD，不要冻结，不要关键帧抖动。生成龙王低沉男性对白与水下环境声，口型严格同步。",
+    "videoUrl": "https://pixstag-1254880040.cos.ap-shanghai.myqcloud.com/2026-11-08/1a1ba005a0942129.mp4?q-sign-algorithm=sha1&q-ak=AKIDFKFd2FDyYxKWWt6KUbebQCn9HH5f060g&q-sign-time=1794121946;1794381146&q-key-time=1794121946;1794381146&q-header-list=&q-url-param-list=&q-signature=934ae95b7ff2cffe479d5f0bda303e199d678c12",
+    "output": "E:\\卫华黑客松\\E-视频生产线\\data\\chuanyue\\卫华起重机\\clips-v3\\S4a.mp4"
+  }
+}

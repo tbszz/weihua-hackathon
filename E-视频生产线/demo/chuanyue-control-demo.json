@@ -1,0 +1,32 @@
+{
+  "title": "控制室数据动效演示",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shots": [
+    {
+      "id": "control-04",
+      "src": "../public/demo/official-port.jpg",
+      "seconds": 7.5,
+      "title": "数据中枢",
+      "titleStart": 0.2,
+      "titleSeconds": 3
+    }
+  ],
+  "subtitles": [
+    {"text": "大家好，这是我用自己的声音克隆出来的第一句话。", "start": 0.25, "end": 7.25}
+  ],
+  "voices": [
+    {
+      "src": "D:/个人自媒体系统/output/minimax-voice/alinVoice01-first.mp3",
+      "start": 0,
+      "volume": 1,
+      "line": "alinVoice01 试听句"
+    }
+  ],
+  "sfx": [],
+  "claims": [
+    {"text": "控制系统演示", "source": "P0 motion demo"}
+  ],
+  "loudness": {"targetLufs": -14, "truePeak": -1}
+}
