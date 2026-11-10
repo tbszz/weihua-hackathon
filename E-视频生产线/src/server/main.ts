@@ -12,14 +12,18 @@ import {renderFilm} from './render';
 import {exportJianyingDraft} from './jianying';
 import {createTuziClientFromEnv, TuziApiError, type TuziVideoRequest} from './tuzi';
 import {editWithAgent, editorCapabilities, chatRequestSchema} from './editor-agent';
+import {createAigcPlan, getSkillCatalog} from './skills';
+import {createMagpieClientFromEnv, MagpieApiError, type MagpieVideoTask} from './magpie';
 
 const app = Fastify({logger: true, bodyLimit: 2 * 1024 * 1024});
 const root = process.cwd();
 const port = Number(process.env.VIDEO_LINE_PORT ?? 8705);
 const jobsRoot = path.join(root, 'data/jobs');
 const mediaRoot = path.join(root, 'data/assets/raw');
+const aigcTasksRoot = path.join(root, 'data/aigc/tasks');
 await mkdir(jobsRoot, {recursive: true});
 await mkdir(mediaRoot, {recursive: true});
+await mkdir(aigcTasksRoot, {recursive: true});
 await app.register(multipart, {limits: {fileSize: 200 * 1024 * 1024, files: 1}});
 await app.register(staticFiles, {root: path.join(root, 'public/demo'), prefix: '/demo/'});
 await app.register(staticFiles, {root: jobsRoot, prefix: '/outputs/', decorateReply: false});
@@ -27,6 +31,8 @@ await app.register(staticFiles, {root: mediaRoot, prefix: '/media/', decorateRep
 const sceneSchema = z.object({id: z.string().max(30), time: z.string().max(40), seconds: z.number().min(2).max(30), title: z.string().min(1).max(50), narration: z.string().min(1).max(150), overlay: z.string().max(150), transition: z.string().max(30), assetId: z.string().max(100), role: z.string().max(100), claim: z.object({value: z.string(), label: z.string(), source: z.string()}).optional()});
 const renderRequest = z.object({scenes: z.array(sceneSchema).min(1).max(12)});
 const exportRequest = z.object({id: z.string().regex(/^[\da-f-]{36}$/)});
+const aigcPlanRequest = z.object({topic: z.string().trim().min(2).max(120), durationSeconds: z.number().int().min(4).max(30).default(15), aspectRatio: z.enum(['16:9', '9:16', '1:1']).default('16:9'), claims: z.array(z.object({value: z.string().trim().min(1).max(80), source: z.string().url()})).max(12).default([])});
+const aigcVideoRequest = z.object({prompt: z.string().trim().min(1).max(10_000), seconds: z.number().int().min(4).max(30).optional(), size: z.string().regex(/^(1280x720|720x1280|1024x1024)$/).optional(), model: z.string().min(1).max(100).optional(), watermark: z.boolean().default(true), planId: z.string().max(100).optional()});
 const tuziVideoRequest = z.object({
   model: z.string().min(1).max(100).optional(),
   prompt: z.string().min(1).max(10_000),
@@ -41,7 +47,48 @@ for (const asset of JSON.parse(await readFile(extraAssetsFile, 'utf8').catch(() 
 let busy = false;
 app.get('/api/assets', () => [...catalog.values()]);
 app.get('/api/health', () => ({ok: true, planner: '本地规则模板（未接大模型）', tts: process.env.MINIMAX_VOICE_ID ?? 'alinVoice01', busy}));
-app.get('/api/skills', () => editorCapabilities());
+app.get('/api/skills', async () => ({...(await editorCapabilities()), aigcSkills: getSkillCatalog()}));
+app.get('/api/aigc/skills', () => ({skills: getSkillCatalog()}));
+app.get('/api/aigc/health', async (_request, reply) => {
+  try {return await createMagpieClientFromEnv().checkConnection();}
+  catch (error) {if (error instanceof MagpieApiError) return reply.code(error.status).send({ok: false, provider: 'magpie', message: error.message}); return reply.code(503).send({ok: false, provider: 'magpie', message: (error as Error).message});}
+});
+app.post('/api/aigc/plan', async (request, reply) => {
+  const parsed = aigcPlanRequest.safeParse(request.body);
+  if (!parsed.success) return reply.code(400).send({message: 'AIGC 计划参数不正确'});
+  try {return {plan: createAigcPlan(parsed.data)};}
+  catch (error) {return reply.code(400).send({message: (error as Error).message});}
+});
+app.post('/api/aigc/videos', async (request, reply) => {
+  const parsed = aigcVideoRequest.safeParse(request.body);
+  if (!parsed.success) return reply.code(400).send({message: 'AIGC 视频参数不正确'});
+  try {
+    const provider = createMagpieClientFromEnv();
+    const task = await provider.createVideo(parsed.data);
+    const record = {task, request: parsed.data, createdAt: new Date().toISOString()};
+    await writeFile(path.join(aigcTasksRoot, `${task.id}.json`), JSON.stringify(record, null, 2));
+    return reply.code(202).send(record);
+  } catch (error) {
+    if (error instanceof MagpieApiError) return reply.code(error.status).send({message: error.message});
+    return reply.code(503).send({message: (error as Error).message});
+  }
+});
+app.get('/api/aigc/videos/:id', async (request, reply) => {
+  const id = (request.params as {id: string}).id;
+  const file = path.join(aigcTasksRoot, `${id}.json`);
+  const stored = JSON.parse(await readFile(file, 'utf8').catch(() => 'null')) as {task: MagpieVideoTask; request: unknown; createdAt: string} | null;
+  if (!stored) return reply.code(404).send({message: 'AIGC 任务不存在'});
+  if (stored.task.status === 'completed' || stored.task.status === 'failed') return stored;
+  try {
+    const task = await createMagpieClientFromEnv().getVideo(id);
+    const updated = {...stored, task};
+    await writeFile(file, JSON.stringify(updated, null, 2));
+    return updated;
+  } catch (error) {
+    if (error instanceof MagpieApiError) return reply.code(error.status).send({message: error.message});
+    return reply.code(503).send({message: (error as Error).message});
+  }
+});
 app.post('/api/editor/chat', async (request, reply) => {
   const parsed = chatRequestSchema.safeParse(request.body);
   if (!parsed.success) return reply.code(400).send({message: '剪辑会话参数不正确'});

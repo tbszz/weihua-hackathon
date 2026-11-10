@@ -2,12 +2,14 @@ import {useEffect, useState} from 'react';
 import {createDemoStoryboard, createInitialJob, findAsset, validateStoryboard, type RenderResult, type StoryboardScene} from './demo/pipeline';
 import './styles.css';
 import {EditorChat} from './web/EditorChat';
+import {AigcStudio} from './web/AigcStudio';
 
-type Stage = 'brief' | 'storyboard' | 'render' | 'complete';
+type Stage = 'brief' | 'storyboard' | 'aigc' | 'render' | 'complete';
 
 const stageLabels: {id: Stage; label: string; note: string}[] = [
   {id: 'brief', label: '任务简报', note: '主题与素材'},
   {id: 'storyboard', label: '故事板', note: '镜头与口径'},
+  {id: 'aigc', label: 'AIGC 工坊', note: 'Skills 与生成'},
   {id: 'render', label: '渲染质检', note: '成片与门禁'},
   {id: 'complete', label: '交付', note: '可下载演示包'},
 ];
@@ -124,25 +126,27 @@ export default function App() {
       <div className="sidebar-subtitle">INDUSTRIAL VIDEO LINE / P0 DEMO</div>
       <div className="nav-group">
         <div className="nav-label">当前任务</div>
-        {stageLabels.map((item, index) => <button className={`nav-step ${stage === item.id ? 'active' : ''} ${stageLabels.findIndex((entry) => entry.id === stage) > index ? 'done' : ''}`} key={item.id} disabled={isRendering || (item.id !== 'brief' && !storyboard.length) || (item.id === 'complete' && !render)} onClick={() => setStage(item.id)}><span className="step-index">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.label}</strong><small>{item.note}</small></span><i>{stageLabels.findIndex((entry) => entry.id === stage) > index ? '✓' : '·'}</i></button>)}
+        {stageLabels.map((item, index) => <button className={`nav-step ${stage === item.id ? 'active' : ''} ${stageLabels.findIndex((entry) => entry.id === stage) > index ? 'done' : ''}`} key={item.id} disabled={isRendering || (item.id !== 'brief' && item.id !== 'aigc' && !storyboard.length) || (item.id === 'complete' && !render)} onClick={() => setStage(item.id)}><span className="step-index">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.label}</strong><small>{item.note}</small></span><i>{stageLabels.findIndex((entry) => entry.id === stage) > index ? '✓' : '·'}</i></button>)}
       </div>
       <div className="nav-group lower">
         <div className="nav-label">能力地图</div>
         <div className="capability"><span className="cap-dot live" />素材探测 / 规则分类 <b>P0</b></div>
         <div className="capability"><span className="cap-dot live" />工业故事板模板 <b>P0</b></div>
         <div className="capability"><span className="cap-dot live" />Remotion 包装渲染 <b>P0</b></div>
+        <div className="capability"><span className="cap-dot live" />AIGC Skills / Magpie <b>LOOMI</b></div>
         <div className="capability muted"><span className="cap-dot plan" />名场面穿越 Skill（独立） <b>SKILL</b></div>
       </div>
       <div className="sidebar-footer"><span className="status-pulse" />演示模式已就绪<div>本地素材 · 确定性流程 · 可复演</div></div>
     </aside>
     <main className="main-content">
-      <header className="topbar"><div><span className="eyebrow">WORKFLOW / {stage.toUpperCase()}</span><h1>{stage === 'brief' ? '新建一条工业宣传片' : stage === 'storyboard' ? '故事板：镜头先于剪辑确定' : stage === 'render' ? '渲染与质检：把口径锁进成片' : '交付：一条可核对的演示片'}</h1></div><div className="topbar-meta"><span className="red-tag">P0 DEMO</span><span>2026.11.07</span><span className="avatar">卫</span></div></header>
+      <header className="topbar"><div><span className="eyebrow">WORKFLOW / {stage.toUpperCase()}</span><h1>{stage === 'brief' ? '新建一条工业宣传片' : stage === 'storyboard' ? '故事板：镜头先于剪辑确定' : stage === 'aigc' ? 'AIGC 工坊：把缺口交给生成 Agent' : stage === 'render' ? '渲染与质检：把口径锁进成片' : '交付：一条可核对的演示片'}</h1></div><div className="topbar-meta"><span className="red-tag">LOOMI / P0</span><span>2026.11.10</span><span className="avatar">卫</span></div></header>
       <div className="content-wrap">
         {error && <div className="notice" role="alert">{error}</div>}
         {chatBusy && <p role="status">剪辑助手正在处理…</p>}
         <div className="mode-note">自然对话式剪辑 · 本地规则编排 · 中文配音 · 实际 MP4 渲染。名场面穿越是独立 Skill，不会被当成故事板模板。</div>
         {stage === 'brief' && <label className="upload-button">＋ 上传图片或视频<input type="file" accept=".jpg,.jpeg,.png,.mp4,.mov,.webm" onChange={async (event) => {const file = event.target.files?.[0]; if (!file) return; const form = new FormData(); form.append('file', file); setError('正在上传和探测素材…'); try {const response = await fetch('/api/assets', {method: 'POST', body: form}); const asset = await response.json(); if (!response.ok) throw new Error(asset.message); setJob((current) => ({...current, assets: [...current.assets.filter((item) => item.id !== asset.id), asset]})); setError('');} catch (failure) {setError((failure as Error).message);}}} /></label>}
         {stage === 'storyboard' && storyboard[activeScene] && <div className="scene-editor"><label>镜头素材<select value={storyboard[activeScene].assetId} onChange={(event) => setStoryboard(storyboard.map((scene, index) => index === activeScene ? {...scene, assetId: event.target.value} : scene))}>{job.assets.map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select></label><label>配音 / 字幕<textarea value={storyboard[activeScene].narration} onChange={(event) => setStoryboard(storyboard.map((scene, index) => index === activeScene ? {...scene, narration: event.target.value} : scene))} /></label><label>时长（秒）<input type="number" min="2" max="30" value={storyboard[activeScene].seconds} onChange={(event) => setStoryboard(storyboard.map((scene, index) => index === activeScene ? {...scene, seconds: Number(event.target.value)} : scene))} /></label></div>}
+        {stage === 'aigc' && <AigcStudio />}
         {isRendering && <p role="status">{renderStage} · {renderProgress}%</p>}
         {render?.outputUrl && !isRendering && <div className="actual-film"><video controls src={render.outputUrl} /><div><a href={render.outputUrl} download="卫华-演示成片.mp4">下载 MP4 成片 ↓</a><a href={render.reportUrl} target="_blank">查看真实质检报告 ↗</a></div></div>}
         {!isRendering && <EditorChat value={chatInput} onChange={setChatInput} messages={chatLog} busy={chatBusy} onSubmit={submitChatEdit} />}
