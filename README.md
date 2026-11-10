@@ -17,6 +17,7 @@ GitHub 私密仓库：[tbszz/weihua-hackathon](https://github.com/tbszz/weihua-h
 | [C-飞书跟进助手/](C-飞书跟进助手/docs/PRD.md) | 作品 C（`follow`），主报 #74 |
 | [D-起重机内容工厂/](D-起重机内容工厂/docs/PRD.md) | 作品 D（`studio`），主报 #10 |
 | [E-视频生产线/](E-视频生产线/docs/PRD.md) | 作品 E（`video`），主报 #19 |
+| [inventory-forecasting/](inventory-forecasting/README.md) | 安全库存动态预测算法验证（根据样例出入库数据做滚动回测） |
 
 每个项目文件夹下有 4 个子文件夹：
 

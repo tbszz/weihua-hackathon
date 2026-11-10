@@ -1,0 +1,2051 @@
+// Left rail resource sections (the other two rail sections, 工序流程 and 生产节拍, are main.js):
+//   #casesBody   项目案例库  archived snapshots of projects; preview, restore as the current project
+//   #prodBody    产品库      shared products with standard parameters (backend product library, built-ins)
+//   #factoryBody AI3D工厂    the active project: its build modules (scenes: 场景搭建 / 鞍座搭建 /
+//                            产品搭建 / added ones), its 产品库 (copies of standard products +
+//                            customised ones) and 文件 (drawings/models uploaded into the project)
+// Products and files move between them by drag and drop, by right-click menus, or by the small
+// buttons that appear on hover. The data is kept in projects.js and saved to the backend
+// (falls back to localStorage) so it survives a reload.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { CATALOG, THUMBNAIL_ROOT } from '../../demo/src/catalog.js';
+import { BLANK_DRAWING, Workspace } from './projects.js';
+import { readEquipment } from '../../demo/src/scene/read-equipment.js';
+import { buildFromSpec, exportGlb, fileName } from './model-builder.js';
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const KIND = { model: '模型', site: '图纸', image: '图片', document: '文档' };
+// Names typed in chat mix full-width brackets and spaces ("起重机（2）"): compare them loosely.
+export const loose = (s) => String(s ?? '').normalize('NFKC').toLowerCase().replace(/\s+/g, '');
+const RAIL_TOP = 9.85; // top of the runway beam in a generated plant, metres
+const loader = new GLTFLoader();
+const STORE_KEY = 'wh.workspace.v1';
+const WS_URL = '/api/projects/workspace/state';
+const DRAG_TYPE = 'application/x-wh-lib';
+// The rail sections the library renders into; all share one set of tree handlers.
+const HOSTS = ['casesBody', 'prodBody', 'factoryBody'];
+const fmtDate = (ms) => {
+  if (!ms) return '日期未知';
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+// The scene crane is procedural (示意) and stands for the overhead-crane product below until
+// the real crane GLB arrives.
+const CATS = [
+  { key: 'agv', label: 'AGV', test: (c) => !c || /agv/i.test(c) },
+  { key: 'crane', label: '起重机', test: (c) => /crane/i.test(c ?? '') },
+  { key: 'other', label: '其他', test: (c) => Boolean(c) && !/agv|crane/i.test(c) },
+];
+export const SCENE_CRANE = { id: 'double-girder-crane-demo', model: '双梁桥式起重机（示意）', category: 'overhead_crane', summary: '场景中的行车 #1，程序化示意模型' };
+const SAMPLE_NAME = 'sample-plant.dxf';
+const BLANK_NAME = '空白场景';
+
+const svg = (d, size = 13) => `<svg viewBox="0 0 16 16" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICON = {
+  locate: svg('<circle cx="8" cy="8" r="4.2"/><path d="M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/>', 11),
+  folder: svg('<path d="M1.8 4.2c0-.7.5-1.2 1.2-1.2h3l1.5 1.6h5.5c.7 0 1.2.5 1.2 1.2v6.2c0 .7-.5 1.2-1.2 1.2H3c-.7 0-1.2-.5-1.2-1.2z"/>'),
+  box: svg('<path d="M8 1.8 14 5v6L8 14.2 2 11V5z"/><path d="M2 5l6 3.2L14 5M8 8.2v6"/>'),
+  scene: svg('<path d="M1.8 13.5h12.4M3 13.5V6.5l5-3.8 5 3.8v7"/><path d="M6.3 13.5V9.6h3.4v3.9"/>'),
+  plus: svg('<path d="M8 3v10M3 8h10"/>', 12),
+  more: svg('<circle cx="3.5" cy="8" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/><circle cx="12.5" cy="8" r=".9" fill="currentColor"/>', 13),
+  archive: svg('<rect x="1.8" y="2.5" width="12.4" height="3.2" rx=".6"/><path d="M3 5.7v7c0 .5.4.8.8.8h8.4c.4 0 .8-.3.8-.8v-7M6.5 8.5h3"/>'),
+  saddle: svg('<path d="M1.8 12.5h12.4M3.5 12.5V9.2M12.5 12.5V9.2"/><path d="M3.5 9.2c1.2-.2 2.2-1 2.6-2.2h3.8c.4 1.2 1.4 2 2.6 2.2"/><circle cx="8" cy="5" r="2"/>'),
+  module: svg('<rect x="2" y="2" width="5" height="5" rx=".6"/><rect x="9" y="2" width="5" height="5" rx=".6"/><rect x="2" y="9" width="5" height="5" rx=".6"/><path d="M11.5 9.5v4M9.5 11.5h4"/>'),
+};
+// Icon and hint for each kind of build module (projects.js MODULES).
+const MODULE_ICON = { site: 'scene', saddle: 'saddle', product: 'box', custom: 'module' };
+
+async function getJson(url, init) {
+  const r = await fetch(url, init);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error ?? `${url} ${r.status}`);
+  return body;
+}
+
+// Guess a product category from what the user called the model.
+function categoryOf(name) {
+  if (/起重机|行车|吊车|crane/i.test(name)) return 'overhead_crane';
+  if (/卷|coil/i.test(name)) return 'coil';
+  if (/agv|小车|平板车/i.test(name)) return 'agv';
+  if (/大车|车|truck|vehicle/i.test(name)) return 'vehicle';
+  return 'equipment';
+}
+
+const catalogHas = (id) => CATALOG.some((c) => c.id === id);
+
+export class Library {
+  constructor(app) {
+    this.app = app;
+    this.cat = 'agv';
+    this.products = []; // everything the backend knows: standard + customised
+    this.assets = [];
+    // instance key -> { key, root, asset, x, y, heading, base, height, mount, bay, size }; the first
+    // copy of a model is keyed by its id, further copies by id#2, id#3…
+    this.placed = new Map();
+    this.gltfCache = new Map();
+    this.drawings = new Map(); // drawing asset id -> { summary, geometry } from readEquipment
+    this.profiles = {}; // outline id -> points (mm), from every equipment drawing read so far
+    this.builtModels = new Map(); // model name -> { assetId, productId } built in this session
+    this.online = false;
+    this.ws = null;
+    this.ready = false; // nothing is written back until the saved scene has been restored
+    this.switching = false;
+    this.drawing = null; // asset id of the loaded drawing; null = the built-in sample plant
+    this.processDrawing = null; // the AGV + crane plant's drawing while a generated plant is open
+    this.sel = null; // data-row of the selected tree row
+    this.drag = null;
+    this.renaming = false;
+    this.dirty = false;
+  }
+
+  // ------------------------------------------------------------------ boot + persistence
+
+  async init() {
+    this.ws = new Workspace(await this.loadWorkspace());
+    this.bind();
+    await this.reload();
+    // Bring back the scene that was open last time (drawing, placed models, AGV model).
+    const scene = this.ws.activeScene;
+    if (scene.drawing || scene.overlay || scene.placed.length || (scene.productId && scene.productId !== this.app.product?.id)) {
+      const errors = await this.applyScene(scene);
+      if (errors.length) this.app.toast(`场景「${scene.name}」有 ${errors.length} 项没能还原：${errors[0]}`, true);
+    }
+    this.ready = true;
+    this.persistSoon();
+    this.render();
+    this.watchOtherWindows();
+  }
+
+  async loadWorkspace() {
+    try {
+      const r = await getJson(WS_URL);
+      if (Number.isInteger(r?.version)) this.version = r.version;
+      if (r?.state?.projects) {
+        this.savedJson = JSON.stringify(r.state);
+        return r.state;
+      }
+    } catch {
+      /* backend offline: use the browser copy */
+    }
+    try {
+      return JSON.parse(localStorage.getItem(STORE_KEY) ?? 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  persistSoon() {
+    if (!this.ws || !this.ready) return;
+    this.captureScene();
+    const data = JSON.stringify(this.ws);
+    try {
+      localStorage.setItem(STORE_KEY, data);
+    } catch {
+      /* storage blocked; the backend copy still works */
+    }
+    clearTimeout(this.saveTimer);
+    if (!this.online) return;
+    this.savePending = true;
+    this.saveTimer = setTimeout(() => this.flushSave(), 700);
+  }
+
+  // One PUT at a time, each carrying the version it was based on. The backend refuses (409) a write
+  // from a window that has not seen the latest save, so an old tab can no longer put back a model
+  // that was removed in another tab; this window then takes over the newer copy instead.
+  // `savedJson` is the content of `version`, so unchanged state is not re-saved, and a newer version
+  // whose content is still what this edit started from (another window re-saved the same thing) is
+  // simply built on instead of discarding the edit.
+  async flushSave() {
+    if (this.saveInFlight) {
+      this.saveAgain = true;
+      return;
+    }
+    this.savePending = false;
+    const data = JSON.stringify(this.ws);
+    if (data === this.savedJson) return;
+    this.saveInFlight = true;
+    let conflict = false;
+    try {
+      const base = Number.isInteger(this.version) ? `,"baseVersion":${this.version}` : '';
+      const r = await fetch(WS_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: `{"state":${data}${base}}` });
+      const body = await r.json().catch(() => ({}));
+      if (r.ok && Number.isInteger(body.version)) {
+        this.version = body.version;
+        this.savedJson = data;
+      }
+      conflict = r.status === 409;
+      if (conflict) {
+        const latest = await getJson(WS_URL).catch(() => null);
+        if (latest?.state && Number.isInteger(latest.version) && JSON.stringify(latest.state) === this.savedJson) {
+          this.version = latest.version;
+          conflict = false;
+          this.saveAgain = true;
+        }
+      }
+    } catch {
+      /* backend gone: the browser copy is still saved */
+    } finally {
+      this.saveInFlight = false;
+    }
+    if (conflict) {
+      this.saveAgain = false;
+      clearTimeout(this.saveTimer);
+      this.savePending = false;
+      await this.syncFromServer('conflict');
+    } else if (this.saveAgain) {
+      this.saveAgain = false;
+      this.flushSave();
+    }
+  }
+
+  // Another window (or the phone) saved a newer copy: load it and redraw this scene from it.
+  async syncFromServer(reason = 'remote') {
+    if (this.syncing || !this.ready) return false;
+    this.syncing = true;
+    try {
+      const r = await getJson(WS_URL);
+      if (!r?.state?.projects || !Number.isInteger(r.version)) return false;
+      if (reason !== 'conflict' && (r.version <= (this.version ?? 0) || this.savePending || this.saveInFlight)) return false;
+      this.version = r.version;
+      this.savedJson = JSON.stringify(r.state);
+      this.ready = false; // nothing is written back while the newer copy is being applied
+      this.ws = new Workspace(r.state);
+      this.ws.adopt({ products: this.products, assets: this.assets });
+      const errors = await this.applyScene(this.ws.activeScene);
+      this.ready = true;
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(this.ws));
+      } catch {
+        /* storage blocked */
+      }
+      this.render();
+      this.app.renderDock?.();
+      this.app.renderKpis?.();
+      this.app.toast(reason === 'conflict'
+        ? `这个项目在另一个窗口里改过（v${r.version}），已换成最新的；刚才这一步没有保存，需要的话请再做一次`
+        : `已同步另一个窗口里的修改（v${r.version}）${errors.length ? `，${errors.length} 项没能还原：${errors[0]}` : ''}`, reason === 'conflict' || errors.length > 0);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      this.ready = true;
+      this.syncing = false;
+    }
+  }
+
+  // While this window is visible, look for saves from other windows every few seconds and on focus.
+  watchOtherWindows() {
+    const check = () => {
+      if (document.visibilityState !== 'visible' || !this.online || !this.ready || this.savePending || this.saveInFlight || this.syncing) return;
+      this.syncFromServer('remote');
+    };
+    addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    setInterval(check, 4000);
+  }
+
+  // Write the live scene (drawing, overlay, placed models, AGV model) into the open scene record.
+  captureScene() {
+    if (this.switching || !this.ready) return;
+    const s = this.ws.activeScene;
+    s.drawing = this.drawing;
+    s.overlay = this.overlay?.asset.id ?? null;
+    s.placed = [...this.placed.values()].map((p) => ({ assetId: p.asset.id, x: Math.round(p.x), y: Math.round(p.y), rotate: p.heading ?? 0, size: p.size ?? null, mount: p.mount ?? 'floor', bay: p.bay ?? null, base: p.base ?? 0 }));
+    s.productId = this.app.product?.id ?? s.productId;
+  }
+
+  async reload() {
+    try {
+      const p = await getJson('/api/library/products').catch(() => getJson('/api/products'));
+      this.products = p.products ?? [];
+      this.online = true;
+    } catch {
+      this.products = [];
+      this.online = false;
+    }
+    if (!this.products.length) this.products = CATALOG.map((c) => ({ id: c.id, model: c.model, category: 'agv', summary: c.summary, plate: c.plate, params: c.params, thumbUrl: `${THUMBNAIL_ROOT}/${c.thumbnail}` }));
+    if (!this.products.some((p) => p.id === SCENE_CRANE.id)) this.products.push(SCENE_CRANE);
+    try {
+      this.assets = (await getJson('/api/library/scene')).assets ?? [];
+    } catch {
+      this.assets = [];
+    }
+    if (this.ws?.adopt({ products: this.products, assets: this.assets })) this.persistSoon();
+    this.render();
+  }
+
+  // Standard products only; customised ones (baseProduct) live in the project that made them.
+  get std() {
+    return this.products.filter((p) => !p.baseProduct);
+  }
+
+  placedCount(id) {
+    return [...this.placed.values()].filter((p) => p.asset.id === id).length;
+  }
+
+  product(id) {
+    return this.products.find((p) => p.id === id);
+  }
+
+  asset(id) {
+    return this.assets.find((a) => a.id === id);
+  }
+
+  // ------------------------------------------------------------------ rendering
+
+  render() {
+    if (!this.ws) return;
+    if (this.renaming || this.drag) {
+      this.dirty = true;
+      return;
+    }
+    this.dirty = false;
+    const focused = document.activeElement?.closest?.('.libbody .row')?.dataset.row;
+    const paint = (id, html) => {
+      const el = $(id);
+      if (el) el.innerHTML = html;
+    };
+    paint('casesBody', this.casesHtml());
+    paint('prodBody', this.stdHtml());
+    paint('factoryBody', this.factoryHtml());
+    if (focused) this.rowEl(focused)?.focus({ preventScroll: true });
+    this.renderTitle();
+  }
+
+  // Tree hosts are looked up by id every time: a section may be moved (popped out as a card).
+  hosts() {
+    return HOSTS.map((id) => $(id)).filter(Boolean);
+  }
+
+  qa(sel) {
+    return this.hosts().flatMap((h) => [...h.querySelectorAll(sel)]);
+  }
+
+  rowEl(key) {
+    return this.qa(`.row[data-row="${CSS.escape(key)}"]`)[0] ?? null;
+  }
+
+  renderTitle() {
+    const p = this.ws.active;
+    const s = this.ws.activeScene;
+    const t = $('projTitle');
+    if (t) {
+      t.textContent = p.name;
+      t.title = `当前项目：${p.name}（编号 ${p.id}）· 场景：${s.name}`;
+    }
+    const set = (id, text) => {
+      const el = $(id);
+      if (el) el.textContent = text;
+    };
+    set('casesCount', `${this.ws.archives.length} 个`);
+    set('prodCount', `${this.std.length} 个`);
+    const drawing = !s.label && !this.drawing ? SAMPLE_NAME : this.sceneSub(s, this.drawing);
+    $('source').textContent = `${s.name} · ${drawing}`;
+  }
+
+  // Standard size / parameters line for a product: rated load and body dimensions where known.
+  specOf(p) {
+    const parts = [];
+    const load = Number.isFinite(p.capacityT) ? p.capacityT : Number(/(\d+(?:\.\d+)?)\s*t\b/i.exec(p.plate ?? '')?.[1]);
+    if (Number.isFinite(load) && load > 0) parts.push(`额定 ${load} t`);
+    const prm = p.params ?? {};
+    const nom = (k) => (Number.isFinite(prm[k]?.nominal) ? Math.round(prm[k].nominal) : null);
+    const dims = ['length', 'width', 'height'].map(nom);
+    if (dims[0] && dims[1]) parts.push(`${dims.filter(Boolean).join('×')} mm`);
+    else {
+      for (const [, r] of Object.entries(prm).slice(0, 2)) if (r?.label && Number.isFinite(r.nominal)) parts.push(`${r.label} ${Math.round(r.nominal * 100) / 100}`);
+    }
+    return parts.join(' · ');
+  }
+
+  node(key, defOpen, head, kids, cls = '') {
+    return `<div class="node ${cls} ${this.ws.isOpen(key, defOpen) ? '' : 'closed'}" data-open-key="${esc(key)}">${head}<div class="kids">${kids}</div></div>`;
+  }
+
+  thumb(p, size = '') {
+    const url = p.thumbUrl ?? p.thumbnail;
+    const label = /crane/i.test(p.category ?? '') ? '行车' : /agv/i.test(p.category ?? 'agv') ? 'AGV' : '产品';
+    return `<span class="th ${size}" style="${url ? `background-image:url(${esc(url)})` : ''}">${url ? '' : label}</span>`;
+  }
+
+  // The line under a scene's name: what the user typed, else which plant the scene starts from.
+  sceneSub(s, drawing = s.drawing) {
+    if (s.label) return s.label;
+    if (drawing === BLANK_DRAWING) return BLANK_NAME;
+    return drawing ? this.asset(drawing)?.name ?? '图纸' : '示例厂房';
+  }
+
+  stdHtml() {
+    const std = this.std;
+    const groups = CATS.map((c) => ({ ...c, items: std.filter((p) => c.test(p.category)) })).filter((g) => g.items.length || g.key !== 'other');
+    const cat = groups.find((g) => g.key === this.cat) ?? groups[0];
+    const cur = this.ws.active;
+    const rows = cat.items.map((p) => {
+      const use = this.inUse(p);
+      const owned = cur.products.some((e) => e.productId === p.id);
+      const spec = this.specOf(p);
+      const sub = use ? `<small class="use">● ${esc(use.label)}</small>` : `<small>${esc(p.summary ?? p.category ?? '')}</small>`;
+      return `<div class="row std ${use ? 'inuse' : ''} ${this.sel === `std:${p.id}` ? 'sel' : ''}" tabindex="-1" draggable="true" data-row="std:${esc(p.id)}" data-kind="std" data-id="${esc(p.id)}" ${use ? `data-focus="${esc(use.focus)}"` : ''} title="拖到 AI3D工厂 或三维视图里，或右键加入项目">
+        ${this.thumb(p, 'lg')}<span class="nm"><b>${esc(p.model ?? p.name)}</b>${sub}${spec ? `<small class="spec num">${esc(spec)}</small>` : ''}</span>
+        <span class="racts">${use ? `<button class="go on" data-act="locate" title="跳转到场景中的 ${esc(use.label)}">${ICON.locate}</button>` : ''}<button class="ib ${owned ? 'done' : ''}" data-act="add-cur" title="${owned ? `「${esc(cur.name)}」已有此产品` : `加入当前项目「${esc(cur.name)}」`}">${owned ? '✓' : ICON.plus}</button></span>
+      </div>`;
+    }).join('');
+    const seg = `<div class="cats">${groups.map((g) => `<button data-cat="${g.key}" class="${g.key === cat.key ? 'on' : ''}">${g.label}<em class="num">${g.items.length}</em></button>`).join('')}</div>`;
+    return seg + (rows || `<div class="empty">${cat.label}暂无标准产品</div>`);
+  }
+
+  // 项目案例库: archived snapshots, newest first. A row unfolds into a read-only preview.
+  casesHtml() {
+    const list = this.ws.archives;
+    if (!list.length) return '<div class="empty">还没有归档的项目。<br>在「AI3D工厂」点「保存归档」，当前项目会存一份到这里。</div>';
+    return list.map((a) => {
+      const p = a.project;
+      const head = `<div class="row arc ${this.sel === `ar:${a.id}` ? 'sel' : ''}" tabindex="-1" data-row="ar:${a.id}" data-kind="archive" data-archive="${a.id}" data-toggle title="点击预览（只读），双击恢复为当前项目">
+        <i class="car"></i><span class="ico">${ICON.archive}</span><span class="nm"><b>${esc(a.name)}<i class="kd">第 ${this.ws.archiveVersion(a.id)} 版</i></b><small class="num">${fmtDate(a.archivedAt)} · ${p.scenes.length} 个场景 · 编号 ${esc(a.projectId)}</small></span>
+        <span class="racts"><button class="go" data-act="restore" title="复制一份到 AI3D工厂，作为当前项目">恢复</button></span>
+        <button class="ib more" data-act="menu" title="恢复 / 重命名 / 删除">${ICON.more}</button>
+      </div>`;
+      const mods = p.scenes.map((s) => {
+        const drawing = this.sceneSub(s);
+        return `<div class="pv d1"><span class="ico">${ICON[MODULE_ICON[s.kind] ?? 'module']}</span><span class="nm"><b>${esc(s.name)}</b><small>${esc(drawing)}${s.placed.length ? ` · ${s.placed.length} 个模型` : ''}</small></span></div>`;
+      }).join('');
+      const prods = p.products.map((e) => esc(e.name ?? this.product(e.productId)?.model ?? e.productId)).join('、');
+      const info = `<div class="pvinfo d1">产品：${prods || '无'}<br>文件：${p.assets.length} 个</div>`;
+      const acts = `<div class="pvacts d1"><button class="go" data-act="restore" data-archive="${a.id}">恢复为当前项目</button><span class="muted">只读预览，恢复后在 AI3D工厂 编辑副本</span></div>`;
+      return this.node(`ar:${a.id}`, false, head, mods + info + acts, 'arcn');
+    }).join('');
+  }
+
+  // Top of the AI3D工厂 card: the project's id (cases are filed under it), 保存归档 and ＋ 场景.
+  factoryBar(p) {
+    const n = this.ws.archivesOf(p.id).length;
+    return `<div class="facbar"><span class="pid" title="项目编号：保存归档时按这个编号存进项目案例库">编号 <b class="num">${esc(p.id)}</b>${n ? `<em>已归档 ${n} 版</em>` : ''}</span>
+      <button type="button" class="go" data-act="add-module" title="添加一个场景">${ICON.plus}场景</button>
+      <button type="button" class="go pri" data-act="archive-save" title="把当前项目（含三维里的现状）存一份到项目案例库">${ICON.archive}保存归档</button></div>`;
+  }
+
+  // AI3D工厂: the active project, its scenes (build modules), its products and its files.
+  factoryHtml() {
+    const p = this.ws.active;
+    const head = `<div class="row proj ${this.sel === `pj:${p.id}` ? 'sel' : ''}" tabindex="-1" data-row="pj:${p.id}" data-kind="project" data-project="${p.id}" data-drop="project" title="当前项目（双击或 F2 重命名，右键更多操作）">
+      <span class="ico">${ICON.folder}</span><span class="nm"><b>${esc(p.name)}</b><small>${p.scenes.length} 个场景 · ${p.products.length} 个产品 · ${p.assets.length} 个文件</small></span>
+      <button class="ib more" data-act="menu" title="重命名 / 切换项目 / 新建项目">${ICON.more}</button>
+    </div>`;
+    const mods = p.scenes.map((s) => {
+      const open = s.id === p.activeScene;
+      const drawing = this.sceneSub(s);
+      const n = s.placed.length;
+      return `<div class="row sc mod d1 ${open ? 'on' : ''} ${this.sel === `sc:${p.id}:${s.id}` ? 'sel' : ''}" tabindex="-1" data-row="sc:${p.id}:${s.id}" data-kind="scene" data-module="${esc(s.kind)}" data-project="${p.id}" data-scene="${s.id}" title="${open ? '正在编辑的场景' : '点击打开这个场景'}">
+        <span class="ico sc">${ICON[MODULE_ICON[s.kind] ?? 'module']}</span><span class="nm"><b>${esc(s.name)}</b><small title="双击修改这行文字">${esc(drawing)}${n ? ` · ${n} 个模型` : ''}</small></span>
+        ${open ? '<span class="tag">打开中</span>' : '<span class="racts"><button class="go" data-act="open-scene">打开</button></span>'}
+      </div>${open ? this.placedRows() : ''}`;
+    }).join('');
+    const add = `<div class="addmod d1"><button type="button" data-act="add-module" title="添加一个场景（例如：吊具搭建、产线搭建）">${ICON.plus}<span>添加场景</span></button></div>`;
+    return this.factoryBar(p) + head + mods + add + this.projectFolds(p);
+  }
+
+  // Models placed in the open scene, one row per model: click to locate, ✕ (or Delete / right-click)
+  // takes every copy out. Removing one copy is done on the model itself in the 3D view.
+  placedRows() {
+    return this.placedGroups().map((g) => {
+      const where = g.bays.size ? `${[...g.bays].join('、')} 跨行车轨道` : '地面';
+      return `<div class="row pl d2 ${this.sel === `pl:${g.id}` ? 'sel' : ''}" tabindex="-1" data-row="pl:${esc(g.id)}" data-kind="placed" data-id="${esc(g.id)}" data-focus="asset:${esc(g.id)}" title="点击定位到场景中；✕ 或 Delete 移出场景；在三维视图里右键单个模型可只删那一个">
+        <span class="ico">${ICON.box}</span><span class="nm"><b>${esc(g.name)}${g.count > 1 ? `<i class="kd">× ${g.count}</i>` : ''}</b><small>${where}</small></span>
+        <span class="racts"><button class="go" data-act="locate" title="定位到场景中">${ICON.locate}</button><button class="ib" data-act="unplace" title="从场景移出${g.count > 1 ? `（全部 ${g.count} 个）` : ''}">✕</button></span>
+      </div>`;
+    }).join('');
+  }
+
+  // The active project's own 产品库 and 文件, kept compact as two folds under the modules.
+  projectFolds(p) {
+    const cur = true;
+    const pp = p.products.map((e) => {
+      const prod = this.product(e.productId);
+      const name = e.name ?? prod?.model ?? e.productId;
+      const custom = Boolean(prod?.baseProduct);
+      const base = custom ? this.product(prod.baseProduct)?.model ?? prod.baseProduct : null;
+      const use = cur && prod ? this.inUse(prod) : null;
+      const sub = !prod ? '<small class="warn">产品库里已没有这个型号</small>' : use ? `<small class="use">● ${esc(use.label)}</small>` : `<small>${custom ? `定制 · 基于 ${esc(base)}` : '标准参数'}</small>`;
+      const act = use ? `<button class="go on" data-act="locate" title="跳转到场景中的 ${esc(use.label)}">${ICON.locate}</button>` : cur && prod && this.usable(prod) ? '<button class="go" data-act="use">选用</button>' : '';
+      return `<div class="row pp d1 ${use ? 'inuse' : ''} ${this.sel === `pp:${p.id}:${e.key}` ? 'sel' : ''}" tabindex="-1" draggable="true" data-row="pp:${p.id}:${e.key}" data-kind="pp" data-project="${p.id}" data-key="${e.key}" data-id="${esc(e.productId)}" ${use ? `data-focus="${esc(use.focus)}"` : ''}>
+        ${prod ? this.thumb(prod) : '<span class="th">?</span>'}<span class="nm"><b>${esc(name)}${custom ? '<i class="kd c">定制</i>' : ''}</b>${sub}</span><span class="racts">${act}</span>
+      </div>`;
+    }).join('') || '<div class="hint d1">从「产品库」拖进来，或点产品右边的 ＋</div>';
+    const ppHead = `<div class="row fold" tabindex="-1" data-row="ppf:${p.id}" data-kind="products" data-project="${p.id}" data-drop="products" data-toggle>
+      <i class="car"></i><span class="ico">${ICON.box}</span><span class="nm"><b>项目产品库</b></span><em class="cnt">${p.products.length}</em><button class="ib" data-act="menu" title="从产品库添加">${ICON.plus}</button>
+    </div>`;
+    const files = p.assets.map((id) => this.asset(id)).filter(Boolean).reverse().map((a) => this.assetHtml(p, a, cur)).join('');
+    const fHead = `<div class="row fold" tabindex="-1" data-row="scf:${p.id}" data-kind="scenes" data-project="${p.id}" data-drop="scenes" data-toggle>
+      <i class="car"></i><span class="ico">${ICON.folder}</span><span class="nm"><b>文件</b></span><em class="cnt">${p.assets.length}</em><button class="ib" data-act="menu" title="上传图纸 / 模型">${ICON.plus}</button>
+    </div>`;
+    const filesBody = files ? `<div class="hint d1">图纸、模型 · 拖进三维视图即可放入</div>${files}` : '<div class="hint d1">还没有文件。图纸和模型在右边发给小华上传</div>';
+    return `<div class="folds">${this.node(`pj:${p.id}:pp`, false, ppHead, pp)}${this.node(`pj:${p.id}:sc`, p.assets.length > 0, fHead, filesBody)}</div>`;
+  }
+
+  assetHtml(p, a, cur) {
+    const ok = Library.usable(a);
+    let act = '';
+    if (cur && ok && a.kind === 'model') act = this.placed.has(a.id) ? `<button class="go on" data-act="remove">移出</button>` : `<button class="go" data-act="place">放入</button>`;
+    else if (cur && ok && a.kind === 'site' && a.meta?.convention === 'generic') act = this.overlay?.asset.id === a.id
+      ? `<button class="go on" data-act="unoverlay">移出底图</button>`
+      : `<button class="go ${this.drawing === a.id ? 'on' : ''}" data-act="site" title="识别柱网、跨、吊车梁、墙和设备，生成三维厂房并分步播放建造过程">${this.drawing === a.id ? '重新建造' : '生成厂房'}</button>`;
+    else if (cur && ok && a.kind === 'site') act = this.drawing === a.id ? '<span class="tag">使用中</span>' : `<button class="go" data-act="site">载入</button>`;
+    const thumb = a.thumbUrl ? `background-image:url(${esc(a.thumbUrl)})` : '';
+    const sub = ok ? `${KIND[a.kind] ?? a.kind} · ${esc(a.meta?.formatName ?? a.originalFormat)}` : esc(a.message || '无法识别');
+    const placed = cur && this.placed.has(a.id);
+    return `<div class="row as d1 ${ok ? '' : 'err'} ${placed ? 'inuse' : ''} ${this.sel === `as:${p.id}:${a.id}` ? 'sel' : ''}" tabindex="-1" draggable="${ok}" data-row="as:${p.id}:${a.id}" data-kind="asset" data-project="${p.id}" data-id="${a.id}" ${placed ? `data-focus="asset:${a.id}"` : ''} title="${esc(placed ? '点击跳转到场景中的这个模型' : a.message ?? '')}">
+      <span class="th" style="${thumb}">${thumb ? '' : esc(a.originalFormat ?? '')}</span><span class="nm"><b>${esc(a.name)}</b><small>${sub}</small></span><span class="racts">${act}</span>
+    </div>`;
+  }
+
+  // ------------------------------------------------------------------ events
+
+  bind() {
+    for (const body of this.hosts()) {
+      body.addEventListener('click', (e) => this.onClick(e));
+      body.addEventListener('dblclick', (e) => this.onDblClick(e));
+      body.addEventListener('contextmenu', (e) => this.onContext(e));
+      body.addEventListener('keydown', (e) => this.onKey(e));
+      body.addEventListener('dragstart', (e) => this.onDragStart(e));
+      body.addEventListener('dragend', () => this.endDrag());
+      body.addEventListener('dragover', (e) => this.onDragOver(e));
+      body.addEventListener('dragleave', (e) => {
+        const t = e.target.closest?.('.drop-ok');
+        if (t && !t.contains(e.relatedTarget)) t.classList.remove('drop-ok');
+      });
+      body.addEventListener('drop', (e) => this.onDrop(e));
+      body.addEventListener('scroll', () => this.closeMenu(), { passive: true });
+    }
+    // 保存归档 in the AI3D工厂 header: archive without folding / popping the section.
+    $('archiveBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.run(() => this.archiveActive());
+    });
+    // Scene switcher: the module name under the 3D view.
+    const src = $('source');
+    src.classList.add('scene-pick');
+    src.title = '切换场景';
+    src.tabIndex = 0;
+    const pick = (el) => {
+      const r = el.getBoundingClientRect();
+      this.openMenu(el, r.left, r.bottom + 4, this.sceneMenu());
+      // Open upwards when the switcher sits at the bottom of the window.
+      const m = this.menu;
+      if (m && r.bottom + 4 + m.offsetHeight > innerHeight - 6) m.style.top = `${Math.max(6, r.top - 4 - m.offsetHeight)}px`;
+    };
+    src.addEventListener('click', (e) => { e.stopPropagation(); pick(src); });
+    src.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      pick(src);
+    });
+    // Products and models can also be dropped straight into the 3D view.
+    const view = $('view');
+    view.addEventListener('dragover', (e) => {
+      if (!this.drag || !this.viewAccepts(this.drag)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      view.classList.add('lib-drop');
+    });
+    view.addEventListener('dragleave', (e) => {
+      if (!view.contains(e.relatedTarget)) view.classList.remove('lib-drop');
+    });
+    view.addEventListener('drop', (e) => {
+      view.classList.remove('lib-drop');
+      if (!this.drag || !this.viewAccepts(this.drag)) return;
+      e.preventDefault();
+      const drag = this.drag;
+      this.endDrag();
+      this.run(() => this.dropInView(drag, e.clientX, e.clientY));
+    });
+  }
+
+  rowInfo(row) {
+    const d = row?.dataset ?? {};
+    return { kind: d.kind, project: d.project, id: d.id, key: d.key, scene: d.scene, archive: d.archive, row };
+  }
+
+  select(row) {
+    for (const r of this.qa('.row.sel')) r.classList.remove('sel');
+    this.sel = row?.dataset.row ?? null;
+    if (row) {
+      row.classList.add('sel');
+      row.focus({ preventScroll: true });
+    }
+  }
+
+  toggle(node, on) {
+    if (!node?.dataset.openKey) return;
+    const open = on ?? node.classList.contains('closed');
+    node.classList.toggle('closed', !open);
+    this.ws.setOpen(node.dataset.openKey, open);
+    this.persistSoon();
+  }
+
+  async run(fn) {
+    try {
+      await fn();
+    } catch (error) {
+      this.app.toast(error.message, true);
+    }
+    this.render();
+  }
+
+  onClick(e) {
+    this.closeMenu();
+    // No click fires during a real drag, so a drag still on record here is stale (its dragend never
+    // reached us). Left set, it blocks render() for good and every tab / fold click looks dead.
+    if (this.drag) this.endDrag();
+    const cat = e.target.closest('[data-cat]');
+    if (cat) {
+      this.cat = cat.dataset.cat;
+      this.render();
+      return;
+    }
+    const row = e.target.closest('.row');
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      e.stopPropagation();
+      if (act.disabled) return;
+      if (row) this.select(row);
+      if (act.dataset.act === 'menu' || act.dataset.act === 'add-module') {
+        const r = act.getBoundingClientRect();
+        this.openMenu(row ?? act, r.left, r.bottom + 2, act.dataset.act === 'add-module' ? this.addSceneItems() : null);
+        return;
+      }
+      const info = this.rowInfo(row);
+      info.archive ??= act.dataset.archive;
+      this.run(() => this.doAct(act.dataset.act, info));
+      return;
+    }
+    const toggler = e.target.closest('[data-toggle]');
+    // Section headers, folders and project rows open and fold like a file tree; the caret always does.
+    if (toggler && (e.target.closest('.car') || !toggler.classList.contains('pnode'))) {
+      this.toggle(toggler.parentElement);
+      if (row) this.select(row);
+      return;
+    }
+    if (!row) return;
+    this.select(row);
+    if (row.classList.contains('pnode')) this.toggle(row.parentElement);
+    else if (row.dataset.kind === 'scene') this.run(() => this.doAct('open-scene', this.rowInfo(row)));
+    else if (row.dataset.focus) this.app.focusObject(row.dataset.focus);
+  }
+
+  onDblClick(e) {
+    if (e.target.closest('[data-act], input')) return;
+    const row = e.target.closest('.row');
+    if (!row) return;
+    // Double-click on the line under a scene's name (示例厂房 …) edits that line.
+    if (row.dataset.kind === 'scene' && e.target.closest?.('.nm small')) return this.startLabelEdit(row);
+    const info = this.rowInfo(row);
+    // The active project's row renames it; an archived case is restored as the current project.
+    if (info.kind === 'project' && info.project === this.ws.active.id) return this.startRename(row);
+    const primary = { project: 'switch', scene: 'open-scene', pp: 'use', asset: 'primary', archive: 'restore' }[info.kind];
+    if (primary) this.run(() => this.doAct(primary, info));
+    return undefined;
+  }
+
+  onKey(e) {
+    if (e.target.closest('input')) return;
+    const row = e.target.closest('.row');
+    const k = e.key;
+    const host = e.target.closest('.libbody') ?? e.currentTarget;
+    const rows = [...host.querySelectorAll('.row')].filter((r) => r.offsetParent);
+    const i = rows.indexOf(row);
+    let handled = true;
+    if (k === 'ArrowDown' || k === 'ArrowUp') this.select(rows[Math.min(rows.length - 1, Math.max(0, i + (k === 'ArrowDown' ? 1 : -1)))]);
+    else if ((k === 'ArrowRight' || k === 'ArrowLeft') && row?.dataset.toggle !== undefined) this.toggle(row.parentElement, k === 'ArrowRight');
+    else if (k === 'Enter' && row) this.onDblClick({ target: row });
+    else if (k === 'F2' && row) this.startRename(row);
+    else if (k === 'Delete' && row) this.run(() => this.doAct('delete', this.rowInfo(row)));
+    else if ((k === 'ContextMenu' || (k === 'F10' && e.shiftKey)) && row) {
+      const r = row.getBoundingClientRect();
+      this.openMenu(row, r.left + 24, r.bottom);
+    } else handled = false;
+    if (handled) {
+      e.preventDefault();
+      e.stopPropagation(); // keep the 3D view's shortcuts (Delete, arrows, Enter) out of the tree
+    }
+  }
+
+  // ------------------------------------------------------------------ actions
+
+  async doAct(act, info) {
+    const ws = this.ws;
+    const app = this.app;
+    const { kind, project, id, key, scene } = info;
+    switch (act) {
+      case 'locate':
+        app.focusObject(info.row.dataset.focus);
+        return;
+      case 'add-cur':
+        return this.addProduct(ws.active.id, id);
+      case 'new-project':
+        return this.newProject();
+      case 'add-module':
+        return this.addModule();
+      case 'archive-save':
+        return this.archiveActive();
+      case 'restore':
+        return this.restoreArchive(info.archive);
+      case 'switch':
+        return this.switchProject(project);
+      case 'open-scene':
+        return this.openScene(project, scene);
+      case 'use':
+        return this.useProduct(id);
+      case 'place':
+        return this.place(id);
+      case 'remove':
+      case 'unplace': {
+        const name = this.findPlaced(id)?.asset.name ?? id;
+        const keys = this.removeModel(id);
+        if (!keys.length) return undefined;
+        if (this.sel === `pl:${id}`) this.sel = null;
+        app.select?.(null);
+        app.bump();
+        app.toast(`已把 ${name}${keys.length > 1 ? ` × ${keys.length}` : ''} 移出场景`);
+        return undefined;
+      }
+      case 'site':
+        return this.loadSite(id);
+      case 'unoverlay':
+        return this.removeOverlay();
+      case 'overlay':
+        if (project !== ws.active.id) await this.switchProject(project);
+        return this.loadSite(id, { overlay: true });
+      case 'model-from': {
+        const a = this.asset(id);
+        const pics = this.assets.filter((x) => x.kind === 'image' && x.url).map((x) => x.name);
+        if (a && !app.agent?.busy) app.agent?.send(`按设备图纸「${a.name}」建三维模型${pics.length ? `，外观参考图片：${pics.join('、')}` : ''}`);
+        return undefined;
+      }
+      case 'primary': {
+        const a = this.asset(id);
+        if (!a || !Library.usable(a)) return undefined;
+        if (project !== ws.active.id) await this.switchProject(project);
+        if (a.kind === 'model') return this.placed.has(id) ? this.app.focusObject(`asset:${id}`) : this.place(id);
+        if (a.kind === 'site') return this.loadSite(id);
+        return undefined;
+      }
+      case 'delete':
+        if (kind === 'archive') return this.deleteArchive(info.archive);
+        if (kind === 'project') return this.deleteProject(project);
+        if (kind === 'pp') {
+          const e = ws.removeProduct(project, key);
+          if (e) app.toast(`已从「${ws.project(project).name}」产品库移除 ${this.product(e.productId)?.model ?? e.productId}（标准产品库不受影响）`);
+        }
+        if (kind === 'scene') return this.deleteScene(project, scene);
+        if (kind === 'placed') return this.doAct('unplace', info);
+        if (kind === 'asset') {
+          if (project === ws.active.id) this.removeModel(id);
+          ws.removeAsset(project, id);
+          app.toast(`已从「${ws.project(project).name}」文件中移除 ${this.asset(id)?.name ?? id}`);
+        }
+        this.persistSoon();
+        return undefined;
+      default:
+        return undefined;
+    }
+  }
+
+  addProduct(projectId, productId, { quiet = false } = {}) {
+    const p = this.ws.project(projectId);
+    const prod = this.product(productId);
+    const { entry, added } = this.ws.addProduct(projectId, productId);
+    this.ws.setOpen(`pj:${projectId}:pp`, true);
+    this.persistSoon();
+    if (!quiet) this.app.toast(added ? `已把 ${prod?.model ?? productId} 加入「${p.name}」产品库` : `「${p.name}」产品库里已经有 ${prod?.model ?? productId}`);
+    this.flash(`pp:${projectId}:${entry.key}`);
+    return entry;
+  }
+
+  addAssetTo(projectId, assetId) {
+    const p = this.ws.project(projectId);
+    const a = this.asset(assetId);
+    const added = this.ws.addAsset(projectId, assetId);
+    this.ws.setOpen(`pj:${projectId}:sc`, true);
+    this.persistSoon();
+    this.app.toast(added ? `已把 ${a?.name ?? assetId} 加入「${p.name}」的文件` : `「${p.name}」的文件里已经有 ${a?.name ?? assetId}`);
+    this.flash(`as:${projectId}:${assetId}`);
+  }
+
+  // Highlight a row after the next render, so the eye finds what just moved.
+  flash(rowKey) {
+    this.sel = rowKey;
+    requestAnimationFrame(() => {
+      const el = this.rowEl(rowKey);
+      if (!el) return;
+      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el.classList.remove('flash');
+      void el.offsetWidth;
+      el.classList.add('flash');
+    });
+  }
+
+  // A new project opens in AI3D工厂 with its name ready to type (open=false: just create it).
+  async newProject({ withProduct, open = true } = {}) {
+    const p = this.ws.createProject('新项目', withProduct ? [withProduct] : []);
+    this.persistSoon();
+    if (!open) {
+      this.render();
+      return p;
+    }
+    await this.switchProject(p.id);
+    this.render();
+    const row = this.rowEl(`pj:${p.id}`);
+    row?.scrollIntoView({ block: 'nearest' });
+    if (row) this.startRename(row);
+    return p;
+  }
+
+  // ------------------------------------------------------------------ AI3D工厂 modules + 项目案例库
+
+  // ＋ in AI3D工厂: ask for a name, add the module and open it.
+  // blank=true starts from an empty floor instead of the sample plant.
+  async addModule(name, { blank = false } = {}) {
+    const p = this.ws.active;
+    const suggest = this.ws.uniqueName(blank ? BLANK_NAME : '新场景', p.scenes.map((s) => s.name));
+    const label = name ?? prompt(`新${blank ? '空白' : ''}场景名称（例如：吊具搭建、产线搭建）`, suggest);
+    if (label === null || label === undefined) return null;
+    this.captureScene();
+    const s = this.ws.addModule(p.id, label.trim() || suggest, { productId: this.app.product?.id, drawing: blank ? BLANK_DRAWING : null });
+    await this.switchProject(p.id, s.id);
+    this.flash(`sc:${p.id}:${s.id}`);
+    return s;
+  }
+
+  // What ＋ 场景 / 添加场景 offers.
+  addSceneItems() {
+    const run = (fn) => () => this.run(fn);
+    return [
+      { label: '空白场景…', hint: '只有地坪，模型自己放', act: run(() => this.addModule(undefined, { blank: true })) },
+      { label: '从示例厂房开始…', hint: '冷轧车间 AGV + 行车', act: run(() => this.addModule()) },
+      { label: '复制当前场景', act: run(() => this.newScene(this.ws.active.id, { copyCurrent: true })) },
+    ];
+  }
+
+  // Turn a scene into an empty floor: its drawing and placed models go; name and products stay.
+  async clearToBlank(projectId, sceneId) {
+    const s = this.ws.scene(projectId, sceneId);
+    const open = projectId === this.ws.active.id && this.ws.active.activeScene === sceneId;
+    const n = open ? this.placed.size : s.placed.length;
+    if (!confirm(`把场景「${s.name}」清空为空白场景？\n${n ? `场景里的 ${n} 个模型会移出，` : ''}图纸不再作为底座（文件本身不受影响）。`)) return;
+    if (!open) await this.switchProject(projectId, sceneId);
+    Object.assign(s, { drawing: BLANK_DRAWING, overlay: null, placed: [] });
+    const errors = await this.applyScene(s);
+    if (errors.length) throw new Error(errors[0]);
+    this.persistSoon();
+    this.app.toast(`场景「${s.name}」已清空为空白场景，可以把产品库或文件里的模型拖进三维视图`);
+    this.flash(`sc:${projectId}:${sceneId}`);
+  }
+
+  // 保存归档: snapshot the active project (as it is in the 3D view right now) into 项目案例库.
+  archiveActive() {
+    this.captureScene();
+    const rec = this.ws.archiveProject(this.ws.active.id);
+    this.ws.setOpen(`ar:${rec.id}`, false);
+    this.persistSoon();
+    this.app.toast(`已归档「${rec.name}」到项目案例库（${rec.project.scenes.length} 个场景，${fmtDate(rec.archivedAt)}）`);
+    this.flash(`ar:${rec.id}`);
+    return rec;
+  }
+
+  // 恢复为当前项目: a copy of the case becomes the active project; the case itself is unchanged.
+  async restoreArchive(archiveId) {
+    if (!archiveId) throw new Error('没有选中案例');
+    const rec = this.ws.archive(archiveId);
+    this.captureScene();
+    const p = this.ws.restoreArchive(archiveId);
+    const s = this.ws.activeScene;
+    const errors = await this.applyScene(s);
+    this.persistSoon();
+    this.app.cards?.open('secFactory');
+    this.app.toast(errors.length ? `已把案例「${rec.name}」恢复为当前项目「${p.name}」，${errors.length} 项没能还原：${errors[0]}` : `已把案例「${rec.name}」恢复为当前项目「${p.name}」`, errors.length > 0);
+    this.flash(`pj:${p.id}`);
+    return p;
+  }
+
+  deleteArchive(archiveId) {
+    const rec = this.ws.archive(archiveId);
+    if (!confirm(`删除案例「${rec.name}」（${fmtDate(rec.archivedAt)} 归档）？\n删除后不能恢复；已经恢复出来的项目不受影响。`)) return;
+    this.ws.removeArchive(archiveId);
+    if (this.sel === `ar:${archiveId}`) this.sel = null;
+    this.persistSoon();
+    this.app.toast(`已删除案例「${rec.name}」`);
+  }
+
+  async deleteProject(id) {
+    const p = this.ws.project(id);
+    if (this.ws.projects.length <= 1) throw new Error('至少要保留一个项目');
+    if (!confirm(`删除项目「${p.name}」？\n项目里的产品引用和场景会一起删除；标准产品库和已上传的文件本身不受影响。`)) return;
+    const wasActive = this.ws.active.id === id;
+    this.ws.removeProject(id);
+    if (wasActive) {
+      this.switching = true; // the deleted scene must not be captured into the new active one
+      try {
+        await this.applyScene(this.ws.activeScene);
+      } finally {
+        this.switching = false;
+      }
+    }
+    this.persistSoon();
+    this.app.toast(`已删除项目「${p.name}」`);
+  }
+
+  async deleteScene(projectId, sceneId) {
+    const s = this.ws.scene(projectId, sceneId);
+    if (!confirm(`删除场景「${s.name}」？\n这个场景里放的模型位置会一起删除；文件本身不受影响。`)) return;
+    const wasOpen = projectId === this.ws.active.id && this.ws.active.activeScene === sceneId;
+    this.ws.removeScene(projectId, sceneId);
+    if (wasOpen) {
+      this.switching = true;
+      try {
+        await this.applyScene(this.ws.activeScene);
+      } finally {
+        this.switching = false;
+      }
+    }
+    this.persistSoon();
+    this.app.toast(`已删除场景「${s.name}」`);
+  }
+
+  async switchProject(projectId, sceneId) {
+    const ws = this.ws;
+    if (projectId === ws.active.id && (!sceneId || sceneId === ws.active.activeScene)) return;
+    this.captureScene();
+    ws.setActive(projectId, sceneId);
+    const p = ws.active;
+    const s = ws.activeScene;
+    const errors = await this.applyScene(s);
+    this.persistSoon();
+    this.app.toast(errors.length ? `已打开「${p.name} / ${s.name}」，${errors.length} 项没能还原：${errors[0]}` : `已打开「${p.name} / ${s.name}」`, errors.length > 0);
+  }
+
+  openScene(projectId, sceneId) {
+    return this.switchProject(projectId, sceneId);
+  }
+
+  async newScene(projectId, { copyCurrent = false } = {}) {
+    if (projectId === this.ws.active.id) this.captureScene();
+    const from = copyCurrent ? this.ws.activeScene : null;
+    const s = this.ws.addScene(projectId, copyCurrent ? `${from.name} 副本` : '新场景', from ?? { productId: this.app.product?.id }, 'custom');
+    await this.switchProject(projectId, s.id);
+    this.render();
+    const row = this.rowEl(`sc:${projectId}:${s.id}`);
+    if (row) this.startRename(row);
+  }
+
+  // Load a scene record into the 3D view. Returns the list of things that could not be restored.
+  async applyScene(scene) {
+    const app = this.app;
+    const errors = [];
+    const was = this.switching;
+    this.switching = true;
+    try {
+      if ((scene.drawing ?? null) !== this.drawing) {
+        try {
+          if (scene.drawing === BLANK_DRAWING) await this.loadBlank();
+          else if (scene.drawing) await this.loadSite(scene.drawing, { quiet: true });
+          else await this.loadSample();
+        } catch (error) {
+          errors.push(error.message);
+        }
+      }
+      if ((scene.overlay ?? null) !== (this.overlay?.asset.id ?? null)) {
+        this.removeOverlay();
+        const a = scene.overlay && this.asset(scene.overlay);
+        if (a) await this.loadOverlay(a, { quiet: true }).catch((error) => errors.push(error.message));
+        else if (scene.overlay) errors.push('底图文件已不在场景库');
+      }
+      for (const id of [...this.placed.keys()]) this.remove(id);
+      for (const p of scene.placed) {
+        try {
+          await this.place(p.assetId, { x: p.x, y: p.y, rotate: p.rotate, size: p.size ?? undefined, mount: p.mount, bay: p.bay ?? undefined, elevation: p.base || undefined, add: true, quiet: true });
+        } catch (error) {
+          errors.push(error.message);
+        }
+      }
+      if (scene.productId && scene.productId !== app.product?.id && catalogHas(scene.productId) && !app.site.isScene) await app.selectProduct(scene.productId);
+    } finally {
+      this.switching = was;
+    }
+    app.refresh();
+    app.bump();
+    return errors;
+  }
+
+  usable(prod) {
+    return catalogHas(prod.id) || catalogHas(prod.baseProduct) || prod.id === SCENE_CRANE.id;
+  }
+
+  // Put a project product into the open scene: the AGV model is swapped; a customised AGV is
+  // its base model with the saved nominal parameters.
+  async useProduct(productId) {
+    const app = this.app;
+    const prod = this.product(productId);
+    if (!prod) throw new Error('产品库里已没有这个型号');
+    if (prod.id === SCENE_CRANE.id) return app.focusObject('crane');
+    const base = catalogHas(prod.id) ? prod.id : prod.baseProduct;
+    if (!catalogHas(base)) throw new Error(`${prod.model} 暂无三维模型，不能放进场景`);
+    await app.selectProduct(base);
+    if (base !== prod.id && prod.params) {
+      const values = Object.fromEntries(Object.entries(prod.params).filter(([k, r]) => app.product.params[k] && Number.isFinite(r?.nominal)).map(([k, r]) => [k, r.nominal]));
+      if (Object.keys(values).length) app.setVehicleParams(values);
+    }
+    app.bump();
+    this.persistSoon();
+    app.toast(`场景中的 AGV 已换成 ${prod.model}`);
+    return undefined;
+  }
+
+  // ------------------------------------------------------------------ inline rename
+
+  startRename(row) {
+    const info = this.rowInfo(row);
+    if (!['project', 'pp', 'scene', 'archive'].includes(info.kind)) return;
+    const b = row.querySelector('.nm b');
+    if (!b) return;
+    const ws = this.ws;
+    const current = info.kind === 'project' ? ws.project(info.project).name
+      : info.kind === 'archive' ? ws.archive(info.archive).name
+      : info.kind === 'scene' ? ws.scene(info.project, info.scene).name
+        : ws.project(info.project).products.find((e) => e.key === info.key)?.name ?? this.product(info.id)?.model ?? '';
+    this.renaming = true;
+    const input = document.createElement('input');
+    input.className = 'rn';
+    input.value = current;
+    input.maxLength = 60;
+    b.replaceWith(input);
+    row.draggable = false;
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (commit) => {
+      if (done) return;
+      done = true;
+      this.renaming = false;
+      const name = input.value.trim();
+      if (commit && name && name !== current) {
+        if (info.kind === 'project') ws.renameProject(info.project, name);
+        else if (info.kind === 'archive') ws.renameArchive(info.archive, name);
+        else if (info.kind === 'scene') ws.renameScene(info.project, info.scene, name);
+        else ws.renameProduct(info.project, info.key, name);
+        this.persistSoon();
+      }
+      this.sel = row.dataset.row;
+      this.render();
+      this.rowEl(this.sel)?.focus({ preventScroll: true });
+    };
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') finish(true);
+      else if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('dblclick', (e) => e.stopPropagation());
+  }
+
+  // Edit the line under a scene's name in place (示例厂房 -> whatever the user calls the plant).
+  // Clearing it puts the automatic text back.
+  startLabelEdit(row) {
+    // A click just before the double-click may have opened the scene and redrawn the tree.
+    if (!row.isConnected) row = this.rowEl(row.dataset.row);
+    if (!row) return;
+    const info = this.rowInfo(row);
+    if (info.kind !== 'scene') return;
+    const small = row.querySelector('.nm small');
+    if (!small) return;
+    const ws = this.ws;
+    const s = ws.scene(info.project, info.scene);
+    const auto = this.sceneSub({ ...s, label: null });
+    const current = s.label ?? auto;
+    this.renaming = true;
+    const input = document.createElement('input');
+    input.className = 'rn sub';
+    input.value = current;
+    input.placeholder = auto;
+    input.maxLength = 60;
+    input.title = `清空后回车，恢复为「${auto}」`;
+    small.replaceWith(input);
+    row.draggable = false;
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (commit) => {
+      if (done) return;
+      done = true;
+      this.renaming = false;
+      const text = input.value.trim();
+      if (commit && text !== current) {
+        ws.setSceneLabel(info.project, info.scene, text === auto ? null : text);
+        this.persistSoon();
+      }
+      this.sel = row.dataset.row;
+      this.render();
+      this.rowEl(this.sel)?.focus({ preventScroll: true });
+    };
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') finish(true);
+      else if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('dblclick', (e) => e.stopPropagation());
+  }
+
+  // ------------------------------------------------------------------ context menu
+
+  onContext(e) {
+    const row = e.target.closest('.row') ?? e.target.closest('.lsh');
+    if (!row) return;
+    e.preventDefault();
+    if (row.classList.contains('row')) this.select(row);
+    this.openMenu(row, e.clientX, e.clientY);
+  }
+
+  menuFor(row) {
+    const ws = this.ws;
+    const info = this.rowInfo(row);
+    const cur = ws.active;
+    const run = (fn) => () => this.run(fn);
+    // Never an empty submenu: with no other project, say so and offer a new one.
+    const projectsSub = (fn, { except, makeNew } = {}) => {
+      const others = ws.projects.filter((p) => p.id !== except);
+      return [
+        ...(others.length ? others.map((p) => ({ label: p.name, tag: p.id === cur.id ? '当前' : '', act: run(() => fn(p.id)) })) : [{ label: '还没有其他项目', disabled: true }]),
+        { sep: true },
+        { label: '新建项目…', act: run(makeNew ?? (async () => fn((await this.newProject({ open: false })).id))) },
+      ];
+    };
+    if (row.classList.contains('lsh')) {
+      return [];
+    }
+    switch (info.kind) {
+      case 'archive': {
+        if (!info.archive) return [];
+        return [
+          { label: '恢复为当前项目', hint: '复制一份出来继续改，案例本身不变', act: run(() => this.restoreArchive(info.archive)) },
+          { sep: true },
+          { label: '重命名', key: 'F2', act: () => this.startRename(row) },
+          { label: '删除', key: 'Del', danger: true, act: run(() => this.deleteArchive(info.archive)) },
+        ];
+      }
+      case 'std': {
+        const prod = this.product(info.id);
+        const use = prod && this.inUse(prod);
+        return [
+          { label: `加入当前项目「${cur.name}」`, act: run(() => this.addProduct(cur.id, info.id)) },
+          { label: '加入到项目', sub: projectsSub((pid) => this.addProduct(pid, info.id), { makeNew: () => this.newProjectWith(info.id) }) },
+          { sep: true },
+          { label: '在当前场景选用', disabled: !prod || !this.usable(prod) || prod.id === SCENE_CRANE.id, act: run(async () => { this.addProduct(cur.id, info.id, { quiet: true }); await this.useProduct(info.id); }) },
+          ...(use ? [{ label: '定位到场景中', act: () => this.app.focusObject(use.focus) }] : []),
+          ...(this.placedCount(info.id) ? [{ label: `从场景移出（${this.placedCount(info.id)} 个）`, danger: true, act: run(() => this.doAct('unplace', info)) }] : []),
+        ];
+      }
+      case 'placed': {
+        const n = this.placedCount(info.id);
+        return [
+          { label: '定位到场景中', act: () => this.app.focusObject(`asset:${info.id}`) },
+          { sep: true },
+          { label: n > 1 ? `从场景移出（全部 ${n} 个）` : '从场景移出', key: 'Del', danger: true, act: run(() => this.doAct('unplace', info)) },
+        ];
+      }
+      case 'project': {
+        const isCur = info.project === cur.id;
+        return [
+          { label: '重命名', key: 'F2', disabled: !isCur, act: () => this.startRename(row) },
+          { label: '保存归档', hint: '存一份到项目案例库', disabled: !isCur, act: run(() => this.archiveActive()) },
+          { label: '添加场景', disabled: !isCur, sub: this.addSceneItems() },
+          { label: '从标准产品库添加', sub: this.stdSub(info.project) },
+          { sep: true },
+          { label: '切换到项目', sub: projectsSub((pid) => this.switchProject(pid), { except: cur.id, makeNew: () => this.newProject() }) },
+          { label: '新建项目', act: run(() => this.newProject()) },
+          { label: '删除项目', key: 'Del', danger: true, disabled: ws.projects.length <= 1, act: run(() => this.deleteProject(info.project)) },
+        ];
+      }
+      case 'products':
+        return [{ lab: '从标准产品库添加' }, ...this.stdSub(info.project)];
+      case 'pp': {
+        const isCur = info.project === cur.id;
+        const prod = this.product(info.id);
+        return [
+          { label: isCur ? '在当前场景选用' : '切换到此项目并选用', disabled: !prod || !this.usable(prod), act: run(async () => { if (!isCur) await this.switchProject(info.project); await this.useProduct(info.id); }) },
+          ...(isCur && this.placedCount(info.id) ? [{ label: `从场景移出（${this.placedCount(info.id)} 个）`, danger: true, act: run(() => this.doAct('unplace', info)) }] : []),
+          { label: '复制到项目', sub: projectsSub((pid) => this.addProduct(pid, info.id), { except: info.project, makeNew: () => this.newProjectWith(info.id) }) },
+          { sep: true },
+          { label: '重命名', key: 'F2', act: () => this.startRename(row) },
+          { label: '从项目移除', key: 'Del', danger: true, act: run(() => this.doAct('delete', info)) },
+        ];
+      }
+      case 'scenes':
+        return [
+          { label: '上传图纸 / 模型…', hint: '交给小华转换', act: () => this.pickUpload(info.project) },
+        ];
+      case 'scene': {
+        const open = info.project === cur.id && cur.activeScene === info.scene;
+        return [
+          { label: '打开', disabled: open, act: run(() => this.openScene(info.project, info.scene)) },
+          { label: '复制场景', act: run(async () => { await this.openScene(info.project, info.scene); await this.newScene(info.project, { copyCurrent: true }); }) },
+          { label: '添加场景', sub: this.addSceneItems() },
+          { label: '清空为空白场景…', disabled: info.project !== cur.id, act: run(() => this.clearToBlank(info.project, info.scene)) },
+          { sep: true },
+          { label: '重命名', key: 'F2', act: () => this.startRename(row) },
+          { label: '修改说明文字', hint: this.sceneSub(ws.scene(info.project, info.scene)), act: () => this.startLabelEdit(row) },
+          { label: '删除场景', key: 'Del', danger: true, disabled: ws.project(info.project).scenes.length <= 1, act: run(() => this.deleteScene(info.project, info.scene)) },
+        ];
+      }
+      case 'asset': {
+        const a = this.asset(info.id);
+        const ok = a && Library.usable(a);
+        const isCur = info.project === cur.id;
+        const items = [];
+        if (ok && a.kind === 'model') {
+          if (isCur && this.placed.has(a.id)) items.push({ label: '定位到场景中', act: () => this.app.focusObject(`asset:${a.id}`) }, { label: '移出场景', act: run(() => this.doAct('unplace', info)) });
+          else items.push({ label: isCur ? '放入当前场景' : '切换到此项目并放入', act: run(() => this.doAct('primary', info)) });
+        }
+        if (ok && a.kind === 'site') {
+          items.push({ label: a.meta?.convention === 'generic' ? '生成厂房（分步建造）' : '载入为场景图纸', act: run(() => this.doAct('primary', info)) });
+          if (a.meta?.convention === 'generic') items.push({ label: '叠为底图（只做参考）', act: run(() => this.doAct('overlay', info)) });
+          items.push({ label: '按设备图建模（交给小华）', act: run(() => this.doAct('model-from', info)) });
+        }
+        return [
+          ...items,
+          { label: '复制到项目', sub: projectsSub((pid) => this.addAssetTo(pid, info.id), { except: info.project }) },
+          { sep: true },
+          { label: '从项目移除', key: 'Del', danger: true, act: run(() => this.doAct('delete', info)) },
+        ];
+      }
+      default:
+        return [];
+    }
+  }
+
+  stdSub(projectId) {
+    const p = this.ws.project(projectId);
+    const list = this.std.map((prod) => {
+      const have = p.products.some((e) => e.productId === prod.id);
+      return { label: prod.model ?? prod.id, tag: have ? '已有' : '', disabled: have, act: () => this.run(() => this.addProduct(projectId, prod.id)) };
+    });
+    return list.length ? list : [{ label: '标准产品库为空', disabled: true }];
+  }
+
+  async newProjectWith(productId) {
+    const p = await this.newProject({ withProduct: productId });
+    this.app.toast(`已新建项目并加入 ${this.product(productId)?.model ?? productId}，输入项目名称后回车`);
+    return p;
+  }
+
+  // Uploads go through the 小华 chat (it converts files and reports back); target the project first.
+  async pickUpload(projectId) {
+    if (projectId !== this.ws.active.id) await this.switchProject(projectId);
+    this.app.cards?.open('secAgent');
+    $('chatFiles')?.click();
+  }
+
+  // Scene switcher for the scene name under the 3D view: every scene of every project, plus new.
+  sceneMenu() {
+    const ws = this.ws;
+    const cur = ws.active;
+    const run = (fn) => () => this.run(fn);
+    const sceneItems = (p) => p.scenes.map((s) => {
+      const open = p.id === cur.id && s.id === p.activeScene;
+      const drawing = this.sceneSub(s);
+      return { label: s.name, hint: drawing, tag: open ? '打开中' : '', disabled: open, act: run(() => this.openScene(p.id, s.id)) };
+    });
+    return [
+      { lab: `「${cur.name}」的场景` },
+      ...sceneItems(cur),
+      { sep: true },
+      ...this.addSceneItems(),
+      ...(ws.projects.length > 1 ? [{ sep: true }, { lab: '其他项目' }, ...ws.projects.filter((p) => p.id !== cur.id).map((p) => ({ label: p.name, sub: sceneItems(p) }))] : []),
+    ];
+  }
+
+  openMenu(anchor, x, y, list = null) {
+    this.closeMenu();
+    const items = list ?? this.menuFor(anchor);
+    if (!items.length) return;
+    const el = document.createElement('div');
+    el.className = 'ctx';
+    el.setAttribute('role', 'menu');
+    const build = (list, host) => {
+      for (const it of list) {
+        if (it.sep) {
+          host.appendChild(document.createElement('hr'));
+          continue;
+        }
+        if (it.lab) {
+          const l = document.createElement('div');
+          l.className = 'lab';
+          l.textContent = it.lab;
+          host.appendChild(l);
+          continue;
+        }
+        const b = document.createElement('div');
+        if (it.sub && !it.sub.length) it.disabled = true;
+        b.className = `ci ${it.danger ? 'danger' : ''} ${it.sub ? 'csub' : ''} ${it.disabled ? 'off' : ''}`;
+        b.setAttribute('role', 'menuitem');
+        b.tabIndex = -1;
+        b.innerHTML = `<span>${esc(it.label)}</span>${it.hint ? `<small>${esc(it.hint)}</small>` : ''}${it.tag ? `<em>${esc(it.tag)}</em>` : ''}${it.key ? `<kbd>${esc(it.key)}</kbd>` : ''}${it.sub && !it.disabled ? '<i class="arr">▸</i>' : ''}`;
+        if (it.sub && !it.disabled) {
+          const sub = document.createElement('div');
+          sub.className = 'ctx sub';
+          build(it.sub, sub);
+          b.appendChild(sub);
+          b.addEventListener('mouseenter', () => this.placeSub(b, sub));
+          // Clicking the parent item also opens it, for trackpads and slow pointers.
+          b.addEventListener('click', (e) => {
+            if (sub.contains(e.target)) return;
+            e.stopPropagation();
+            for (const x of host.querySelectorAll(':scope > .csub.hot')) if (x !== b) x.classList.remove('hot');
+            b.classList.toggle('hot');
+            this.placeSub(b, sub);
+          });
+        } else if (!it.disabled) {
+          b.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closeMenu();
+            it.act?.();
+          });
+        }
+        host.appendChild(b);
+      }
+    };
+    build(items, el);
+    document.body.appendChild(el);
+    const r = el.getBoundingClientRect();
+    el.style.left = `${Math.max(6, Math.min(x, innerWidth - r.width - 6))}px`;
+    el.style.top = `${Math.max(6, Math.min(y, innerHeight - r.height - 6))}px`;
+    this.menu = el;
+    const close = (e) => {
+      if (e.type === 'keydown' && e.key !== 'Escape') return;
+      if (e.type === 'pointerdown' && el.contains(e.target)) return;
+      this.closeMenu();
+    };
+    this.menuClose = close;
+    setTimeout(() => {
+      addEventListener('pointerdown', close, true);
+      addEventListener('keydown', close, true);
+      addEventListener('resize', close);
+      addEventListener('blur', close);
+    });
+  }
+
+  // Open a submenu to the right, or to the left when it would leave the window.
+  placeSub(item, sub) {
+    sub.classList.remove('flip');
+    sub.style.top = '';
+    requestAnimationFrame(() => {
+      const r = sub.getBoundingClientRect();
+      if (r.right > innerWidth - 6) sub.classList.add('flip');
+      if (r.bottom > innerHeight - 6) sub.style.top = `${innerHeight - 6 - r.bottom - 5}px`;
+    });
+  }
+
+  closeMenu() {
+    if (!this.menu) return;
+    this.menu.remove();
+    this.menu = null;
+    const close = this.menuClose;
+    removeEventListener('pointerdown', close, true);
+    removeEventListener('keydown', close, true);
+    removeEventListener('resize', close);
+    removeEventListener('blur', close);
+  }
+
+  // ------------------------------------------------------------------ drag and drop
+
+  onDragStart(e) {
+    const row = e.target.closest?.('.row[draggable="true"]');
+    if (!row || this.renaming) return;
+    this.closeMenu();
+    const info = this.rowInfo(row);
+    const name = info.kind === 'asset' ? this.asset(info.id)?.name : this.product(info.id)?.model;
+    this.drag = { kind: info.kind, id: info.id, from: info.project ?? null, name: name ?? info.id };
+    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(this.drag));
+    e.dataTransfer.setData('text/plain', this.drag.name);
+    e.dataTransfer.effectAllowed = 'copy';
+    // A compact pill instead of the whole row as the drag image.
+    const pill = document.createElement('div');
+    pill.className = 'dragpill';
+    pill.textContent = `＋ ${this.drag.name}`;
+    document.body.appendChild(pill);
+    e.dataTransfer.setDragImage(pill, 12, 14);
+    setTimeout(() => pill.remove());
+    row.classList.add('dragging');
+    document.body.classList.add('lib-dragging');
+    // Outline every place this item can go, so the user sees the targets before moving.
+    for (const t of this.qa('[data-drop]')) t.classList.toggle('can-drop', Boolean(this.dropMode(this.drag, t)));
+  }
+
+  endDrag() {
+    if (!this.drag) return;
+    this.drag = null;
+    clearTimeout(this.springTimer);
+    document.body.classList.remove('lib-dragging');
+    $('view').classList.remove('lib-drop');
+    for (const t of this.qa('.can-drop, .drop-ok, .dragging')) t.classList.remove('can-drop', 'drop-ok', 'dragging');
+    if (this.dirty) this.render();
+  }
+
+  // What dropping `drag` onto target `t` does, or null when it is not allowed.
+  dropMode(drag, t) {
+    const where = t.dataset.drop;
+    const pid = t.dataset.project;
+    if (where === 'new-project') return drag.kind === 'std' || drag.kind === 'pp' ? '松开：新建项目并加入' : null;
+    const pname = pid ? this.ws.project(pid).name : '';
+    if ((drag.kind === 'std' || drag.kind === 'pp') && (where === 'project' || where === 'products')) {
+      if (drag.kind === 'pp' && drag.from === pid) return null;
+      const have = this.ws.project(pid).products.some((e) => e.productId === drag.id);
+      return have ? `「${pname}」已有` : `松开：加入「${pname}」产品库`;
+    }
+    if (drag.kind === 'asset' && (where === 'project' || where === 'scenes')) {
+      if (drag.from === pid) return null;
+      return `松开：加入「${pname}」的文件`;
+    }
+    return null;
+  }
+
+  onDragOver(e) {
+    if (!this.drag) return;
+    const t = e.target.closest('[data-drop]');
+    for (const x of this.qa('.drop-ok')) if (x !== t) x.classList.remove('drop-ok');
+    const mode = t && this.dropMode(this.drag, t);
+    if (!mode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    t.dataset.dropHint = mode;
+    if (!t.classList.contains('drop-ok')) {
+      t.classList.add('drop-ok');
+      // Hovering on a folded project opens it after a moment (spring-loaded folders).
+      clearTimeout(this.springTimer);
+      const node = t.parentElement;
+      if (node?.classList.contains('closed')) this.springTimer = setTimeout(() => this.toggle(node, true), 600);
+    }
+  }
+
+  onDrop(e) {
+    const t = e.target.closest('[data-drop]');
+    const drag = this.drag;
+    if (!drag || !t || !this.dropMode(drag, t)) return;
+    e.preventDefault();
+    this.endDrag();
+    if (t.dataset.drop === 'new-project') {
+      this.run(() => this.newProjectWith(drag.id));
+      return;
+    }
+    const pid = t.dataset.project;
+    this.run(() => (drag.kind === 'asset' ? this.addAssetTo(pid, drag.id) : this.addProduct(pid, drag.id)));
+  }
+
+  viewAccepts(drag) {
+    if (drag.kind === 'asset') {
+      const a = this.asset(drag.id);
+      return Boolean(a && Library.usable(a) && (a.kind === 'model' || a.kind === 'site'));
+    }
+    const prod = this.product(drag.id);
+    return Boolean(prod && this.usable(prod) && prod.id !== SCENE_CRANE.id);
+  }
+
+  // Dropped into the 3D view: models land where the pointer is, drawings load, products are used.
+  async dropInView(drag, cx, cy) {
+    const ws = this.ws;
+    if (drag.from && drag.from !== ws.active.id) await this.switchProject(drag.from);
+    if (drag.kind === 'asset') {
+      const a = this.asset(drag.id);
+      ws.addAsset(ws.active.id, a.id);
+      if (a.kind === 'site') return this.loadSite(a.id);
+      const at = this.app.floorAt?.(cx, cy);
+      return this.place(a.id, at ? { x: at.x, y: at.y } : {});
+    }
+    if (drag.kind === 'std') this.addProduct(ws.active.id, drag.id, { quiet: true });
+    return this.useProduct(drag.id);
+  }
+
+  // ------------------------------------------------------------------ uploads + scene objects
+
+  // Called by the 小华 chat panel (the only upload entry). Returns the backend asset records;
+  // the files go into the open project's 场景库.
+  async upload(files) {
+    if (!files.length) return { assets: [], message: '' };
+    const form = new FormData();
+    for (const f of files) form.append('files', f, f.name);
+    const r = await fetch('/api/library/scene', { method: 'POST', body: form });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok && !body.assets) throw new Error(body.error || `HTTP ${r.status}`);
+    const assets = body.assets ?? (body.asset ? [body.asset] : []);
+    const pid = this.ws.active.id;
+    for (const a of assets) this.ws.addAsset(pid, a.id);
+    this.ws.setOpen(`pj:${pid}:sc`, true);
+    this.app.cards?.open('secFactory');
+    await this.reload();
+    this.persistSoon();
+    if (assets[0]) this.flash(`as:${pid}:${assets[0].id}`);
+    return { assets, message: body.message ?? '' };
+  }
+
+  // Which scene object (if any) this product is in use as, and where clicking it jumps to.
+  inUse(p) {
+    const app = this.app;
+    // A drawing-built plant has no AGV fleet (agvCount undefined): show nothing rather than "undefined 台".
+    const agvs = app.site?.agvCount;
+    if (p.id === app.product?.id && agvs > 0) return { label: `${agvs} 台在场景中`, focus: 'agv', count: agvs };
+    if (p.id === SCENE_CRANE.id && app.site.crane) return { label: '行车 #1 在场景中', focus: 'crane', count: 1 };
+    const n = this.placedCount(p.id);
+    if (n) return { label: `${n} 个在场景中`, focus: `asset:${p.id}`, count: n };
+    return null;
+  }
+
+  // A selection in the viewport lights up its rows in the tree.
+  reveal(kind) {
+    // Only a NEW selection flips the product tabs. The highlight is re-attached whenever the AGVs or
+    // crane are rebuilt (which re-runs this with the same kind); flipping then would undo the tab the
+    // user just picked, so the 起重机 / 其他 tabs looked dead while an AGV was selected.
+    const fresh = kind !== this.revealed;
+    this.revealed = kind;
+    if (fresh && (kind === 'agv' || kind === 'crane') && this.cat !== kind) {
+      this.cat = kind;
+      this.render();
+    }
+    let first = null;
+    for (const el of this.qa('.row[data-focus]')) {
+      const on = el.dataset.focus === kind;
+      el.classList.toggle('sel', on);
+      if (on && el.classList.contains('pp')) first ??= el;
+    }
+    first?.scrollIntoView({ block: 'nearest' });
+  }
+
+  static usable(a) {
+    return a.status === 'ready' || Boolean(a.url && a.status !== 'failed' && a.status !== 'unsupported');
+  }
+
+  find(idOrName) {
+    const key = String(idOrName).toLowerCase();
+    const exact = this.assets.find((a) => a.id === idOrName);
+    if (exact) return exact;
+    // Same file uploaded twice: prefer the newest usable copy.
+    const hits = [...this.assets].reverse().filter((a) => [a.name, a.originalName].some((n) => n && n.toLowerCase().includes(key)));
+    return hits.find((a) => Library.usable(a)) ?? hits[0];
+  }
+
+  // A placeable model from either library: { id, name, url, source }.
+  findModel(idOrName) {
+    const key = String(idOrName ?? '').trim().toLowerCase();
+    if (!key) throw new Error('没有给出模型名称');
+    const scene = this.assets.filter((a) => a.kind === 'model' && a.url && a.status !== 'failed' && a.status !== 'unsupported')
+      .map((a) => ({ id: a.id, name: a.name, url: a.url, source: '场景库' }));
+    const products = this.products.filter((p) => p.modelUrl).map((p) => ({ id: p.id, name: p.model ?? p.name, alias: p.name, url: p.modelUrl, source: '产品库', category: p.category }));
+    const all = [...products, ...scene];
+    const hit = all.find((m) => m.id.toLowerCase() === key)
+      ?? all.find((m) => m.name.toLowerCase() === key)
+      ?? all.find((m) => m.name.toLowerCase().includes(key) || (m.alias ?? '').toLowerCase().includes(key))
+      ?? all.find((m) => key.includes(m.name.toLowerCase()));
+    if (!hit) {
+      const have = all.map((m) => `${m.name}（${m.source}）`).join('、') || '无';
+      throw new Error(`资源库里没有「${idOrName}」的模型，不能凭空生成或拿别的模型代替。请向用户索要这台设备的图纸或三维模型（STEP/GLB/OBJ/STL/FBX，并说明型号和关键尺寸），上传到左侧资源库后再放入。现有可放入的模型：${have}`);
+    }
+    return hit;
+  }
+
+  async loadGltf(url) {
+    if (!this.gltfCache.has(url)) this.gltfCache.set(url, loader.loadAsync(url).catch((error) => {
+      this.gltfCache.delete(url);
+      throw error;
+    }));
+    return (await this.gltfCache.get(url)).scene;
+  }
+
+  findPlaced(id) {
+    return this.placed.get(id) ?? this.matchPlaced(id).entries[0];
+  }
+
+  // The placed copies a chat name or id points at. An instance key (2#3) is that one copy; a model
+  // id or name is every copy of that model. When a partial name fits several models, nothing is
+  // picked and their names come back as candidates.
+  matchPlaced(id) {
+    const none = { entries: [], candidates: [] };
+    if (id === undefined || id === null || String(id).trim() === '') return none;
+    if (this.placed.has(id)) return { entries: [this.placed.get(id)], candidates: [] };
+    const list = [...this.placed.values()];
+    const key = loose(id);
+    const inst = list.find((p) => loose(p.key) === key);
+    if (inst) return { entries: [inst], candidates: [] };
+    const ofModel = (mid) => ({ entries: list.filter((p) => p.asset.id === mid), candidates: [] });
+    const models = [...new Map(list.map((p) => [p.asset.id, p.asset])).values()];
+    const exact = models.find((m) => loose(m.id) === key || loose(m.name) === key);
+    if (exact) return ofModel(exact.id);
+    // "起重机(2)的模型" contains a model name: the longest contained name wins (钢卷鞍座 over 钢卷).
+    const inside = models.filter((m) => loose(m.name) && key.includes(loose(m.name))).sort((a, b) => loose(b.name).length - loose(a.name).length);
+    if (inside.length) return ofModel(inside[0].id);
+    const around = models.filter((m) => loose(m.name).includes(key));
+    if (around.length === 1) return ofModel(around[0].id);
+    return { entries: [], candidates: around.map((m) => m.name) };
+  }
+
+  // Placed models grouped by model: what the left tree and 小华 list as "in the scene".
+  placedGroups() {
+    const groups = new Map();
+    for (const p of this.placed.values()) {
+      const g = groups.get(p.asset.id) ?? { id: p.asset.id, name: p.asset.name, count: 0, bays: new Set() };
+      g.count += 1;
+      if (p.mount === 'runway' && p.bay) g.bays.add(p.bay);
+      groups.set(p.asset.id, g);
+    }
+    return [...groups.values()];
+  }
+
+  placedSummary() {
+    return this.placedGroups().map((g) => `${g.name}${g.count > 1 ? ` ×${g.count}` : ''}`).join('、') || '无';
+  }
+
+  // Remove several placed copies at once; returns their instance keys.
+  removeMany(entries) {
+    const keys = [];
+    for (const e of entries) if (this.remove(e.key)) keys.push(e.key);
+    return keys;
+  }
+
+  // Every copy of one model.
+  removeModel(assetId) {
+    return this.removeMany([...this.placed.values()].filter((p) => p.asset.id === assetId));
+  }
+
+  // Load a model, scale it to a sane size and stand it on the floor (or on a crane runway).
+  // opts: x, y (mm) | bay + along (m); size (m, longest side); heading (deg); count; mount; elevation (m).
+  async place(id, opts = {}) {
+    const model = this.findModel(id);
+    const site = this.app.site;
+    if (opts.heading === undefined && opts.rotate !== undefined) opts = { ...opts, heading: opts.rotate };
+    if (!site.isScene && !opts.add) for (const e of [...this.placed.values()].filter((p) => p.asset.id === model.id)) this.remove(e.key);
+    const count = Math.max(1, Math.min(20, Math.round(Number(opts.count) || 1)));
+    const mount = opts.mount === 'runway' ? 'runway' : 'floor';
+    if (mount === 'runway' && !site.isScene) throw new Error('只有图纸生成的厂房里才能把模型装到行车轨道上');
+    const template = await this.loadGltf(model.url);
+    const box = new THREE.Box3().setFromObject(template);
+    const dims = box.getSize(new THREE.Vector3());
+    const longest = Math.max(dims.x, dims.y, dims.z) || 1;
+    // Uploaded CAD often comes in millimetres; anything over 60 "m" is treated as mm.
+    let k = longest > 60 ? 0.001 : 1;
+    let heading = Number(opts.heading) || 0;
+    let bay = null;
+    let base = 0;
+    let anchor;
+    let spanNote;
+    if (mount === 'runway') {
+      bay = site.bay(opts.bay ?? site.bays[0]?.name);
+      if (!bay) throw new Error(`没有 ${opts.bay} 跨，可选：${site.bays.map((b) => `${b.name} 跨`).join('、')}`);
+      const crane = site.plant.cranes.find((c) => c.attrs.BAY === bay.name);
+      const span = (Number(crane?.attrs.SPAN) || bay.span - 1100) / 1000 + 0.6;
+      // Lay the model's long horizontal side across the bay. It keeps its own size: a model that
+      // does not fit the rail span is reported, never stretched to fit.
+      const horiz = Math.max(dims.x, dims.z) * (opts.size ? opts.size / longest : k);
+      if (Math.abs(horiz / span - 1) > 0.03) spanNote = `模型横向 ${horiz.toFixed(2)} m，该跨轨道外缘约 ${span.toFixed(2)} m，相差 ${Math.round((horiz / span - 1) * 100)}%；按模型原尺寸放置，没有缩放，请核对这台设备的跨度是否对应这一跨`;
+      const longAlongX = dims.x >= dims.z;
+      const acrossIsWorldZ = site.alongX;
+      if (opts.heading === undefined || opts.heading === null) heading = longAlongX === acrossIsWorldZ ? 90 : 0;
+      base = opts.elevation ?? RAIL_TOP;
+      anchor = opts.x !== undefined && opts.y !== undefined ? { x: opts.x, y: opts.y } : site.bayPoint(bay.name, opts.along ?? null);
+      if (opts.along === undefined && opts.x === undefined && crane) anchor = site.alongX ? { x: crane.x, y: bay.centre } : { x: bay.centre, y: crane.y };
+      site.setCraneHidden(bay.name, true);
+    } else {
+      base = opts.elevation ?? 0;
+      if (opts.x !== undefined && opts.y !== undefined) anchor = { x: opts.x, y: opts.y };
+      else if (site.isScene && (opts.bay || opts.along !== undefined)) anchor = site.bayPoint(opts.bay ?? site.bays[0]?.name, opts.along ?? null);
+      else if (site.isScene) anchor = site.bayPoint(site.bays[Math.floor((site.bays.length - 1) / 2)]?.name ?? 'A', null);
+      else {
+        const centre = site.built.centre;
+        anchor = { x: centre.x + (this.placed.size % 3) * 4000 - 4000, y: centre.y - site.built.size.y * 0.3 };
+      }
+    }
+    if (opts.size) k = opts.size / longest;
+    const sized = dims.clone().multiplyScalar(k);
+    // Copies go in a row along the runway (scene) or along X, one footprint plus 1 m apart.
+    const pitch = (Math.max(sized.x, sized.z) + 1) * 1000;
+    const along = site.isScene && !site.alongX ? { x: 0, y: 1 } : { x: 1, y: 0 };
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      const offset = (i - (count - 1) / 2) * pitch;
+      const at = { x: anchor.x + along.x * offset, y: anchor.y + along.y * offset };
+      const root = new THREE.Group();
+      const object = template.clone(true);
+      object.scale.setScalar(k);
+      const c = box.getCenter(new THREE.Vector3());
+      object.position.set(-c.x * k, -box.min.y * k, -c.z * k);
+      object.traverse((o) => {
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = true;
+        }
+      });
+      root.add(object);
+      let n = 1;
+      while (this.placed.has(n === 1 ? model.id : `${model.id}#${n}`)) n++;
+      const key = n === 1 ? model.id : `${model.id}#${n}`;
+      root.name = `asset:${key}`;
+      const entry = { key, root, asset: model, x: at.x, y: at.y, heading, base, height: sized.y, mount, bay: bay?.name ?? null, size: +Math.max(sized.x, sized.y, sized.z).toFixed(2) };
+      this.applyPose(entry);
+      site.scene.add(root);
+      this.placed.set(key, entry);
+      results.push(entry);
+    }
+    if (model.source === '场景库' && this.ws && !this.switching) this.ws.addAsset(this.ws.active.id, model.id);
+    if (!opts.quiet) {
+      this.app.bump();
+      this.app.toast(`已放入 ${model.name}${count > 1 ? ` × ${count}` : ''}${bay ? `（${bay.name} 跨行车轨道）` : ''}`);
+    }
+    this.app.renderDock?.();
+    this.app.renderKpis?.();
+    this.app.save?.();
+    this.render();
+    return {
+      名称: model.name,
+      来源: model.source,
+      实例: results.map((e) => ({ id: e.key, x_mm: Math.round(e.x), y_mm: Math.round(e.y) })),
+      尺寸_m: sized.toArray().map((v) => +v.toFixed(2)),
+      朝向_deg: heading,
+      安装: mount === 'runway' ? `${bay.name} 跨行车轨道，底面 ${base} m，已替换该跨示意行车` : `地面${base ? `，抬高 ${base} m` : ''}`,
+      跨度提示: spanNote,
+    };
+  }
+
+  applyPose(entry) {
+    entry.root.position.set(entry.x / 1000, entry.base, -entry.y / 1000);
+    entry.root.rotation.y = THREE.MathUtils.degToRad(entry.heading);
+  }
+
+  // Move / turn / resize a placed model. Absolute (x, y, heading, size) or relative (east, north, rotate).
+  move(id, { x, y, east, north, heading, rotate, size, bay, along, elevation } = {}) {
+    const entry = this.findPlaced(id);
+    if (!entry) throw new Error(`场景里没有 ${id}。已放入：${this.placedList().map((p) => p.id).join('、') || '无'}`);
+    const site = this.app.site;
+    if (bay !== undefined || along !== undefined) {
+      if (!site.isScene) throw new Error('按跨定位只在图纸生成的厂房里可用');
+      const p = site.bayPoint(bay ?? entry.bay ?? site.bays[0]?.name, along ?? null);
+      entry.x = p.x;
+      entry.y = p.y;
+      if (entry.mount === 'runway' && p.bay.name !== entry.bay) {
+        site.setCraneHidden(entry.bay, false);
+        site.setCraneHidden(p.bay.name, true);
+        entry.bay = p.bay.name;
+      }
+    }
+    if (x !== undefined) entry.x = x;
+    if (y !== undefined) entry.y = y;
+    if (east) entry.x += east * 1000;
+    if (north) entry.y += north * 1000;
+    if (heading !== undefined) entry.heading = heading;
+    if (rotate) entry.heading = (entry.heading + rotate) % 360;
+    if (elevation !== undefined) entry.base = elevation;
+    if (size) {
+      const object = entry.root.children[0];
+      const k = size / entry.size;
+      object.scale.multiplyScalar(k);
+      object.position.multiplyScalar(k);
+      entry.height *= k;
+      entry.size = size;
+    }
+    this.applyPose(entry);
+    this.app.bump();
+    this.app.renderDock?.();
+    this.app.save?.();
+    return { id: entry.key, 名称: entry.asset.name, x_mm: Math.round(entry.x), y_mm: Math.round(entry.y), 朝向_deg: entry.heading, 底面高度_m: entry.base, 最长边_m: entry.size };
+  }
+
+  remove(id) {
+    const entry = this.findPlaced(id);
+    if (!entry) return false;
+    entry.root.removeFromParent();
+    this.placed.delete(entry.key);
+    if (entry.mount === 'runway' && this.app.site.isScene && ![...this.placed.values()].some((p) => p.mount === 'runway' && p.bay === entry.bay)) this.app.site.setCraneHidden(entry.bay, false);
+    this.app.renderDock?.();
+    this.app.renderKpis?.();
+    this.app.save?.();
+    this.render();
+    return entry.key;
+  }
+
+  clearPlaced() {
+    const n = this.placed.size;
+    for (const entry of this.placed.values()) entry.root.removeFromParent();
+    this.placed.clear();
+    this.app.save?.();
+    this.render();
+    return n;
+  }
+
+  // Register an uploaded model as a product so it shows in the product library.
+  async registerProduct(idOrName, { model, name, category, params = {} } = {}) {
+    const asset = this.find(idOrName);
+    if (!asset || asset.kind !== 'model') throw new Error(`场景库里没有模型 ${idOrName}`);
+    if (asset.status !== 'ready') throw new Error(`${asset.name} 还没有转换成功，不能入产品库`);
+    const label = model ?? asset.name;
+    const r = await getJson('/api/library/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: label, name: name ?? label, category: category ?? categoryOf(`${label} ${name ?? ''}`), modelAssetId: asset.id, params }),
+    });
+    await this.reload();
+    if (this.ws && !this.switching && r.product) this.ws.addProduct(this.ws.active.id, r.product.id);
+    this.persistSoon();
+    return r.product;
+  }
+
+  // A converted drawing. Drawings with the Weihua layer convention (A-WALL / AGV-PATH / AGV-STAT)
+  // replace the AGV + crane process plant; any other plant drawing is read for its columns, bays,
+  // runway beams, walls and machines and built as a new plant, stage by stage. overlay=true only lays
+  // the linework on the floor for reference.
+  async loadSite(id, { quiet = false, overlay = false } = {}) {
+    const asset = this.find(id);
+    if (!asset || asset.kind !== 'site') throw new Error(`场景库里没有图纸 ${id}`);
+    if (overlay) return this.loadOverlay(asset, { quiet });
+    const dxfUrl = asset.meta?.dxfUrl ?? asset.meta?.originalDxfUrl;
+    if (!dxfUrl) throw new Error(`${asset.name} 没有可用的 DXF`);
+    const text = await fetch(dxfUrl).then((r) => {
+      if (!r.ok) throw new Error(`读不到 ${asset.name} 的 DXF（${r.status}）`);
+      return r.text();
+    });
+    const name = asset.originalName ?? asset.name;
+    if (asset.meta?.convention === 'generic') return this.buildPlant(asset, text, name, null, { quiet });
+    try {
+      await this.loadDxf(text, name, asset.id, `图纸 ${asset.name} 无法生成工序`);
+    } catch (error) {
+      // Not a process drawing after all: build it as a plant instead.
+      return this.buildPlant(asset, text, name, error.message, { quiet });
+    }
+    if (this.ws && !this.switching) this.ws.addAsset(this.ws.active.id, asset.id);
+    if (!quiet) this.app.toast(`已载入图纸 ${asset.name}`);
+    this.app.save?.();
+    return { 图纸: asset.name, 模式: 'AGV + 行车工序', 工序数: this.app.site.process.steps.length };
+  }
+
+  // Back to the built-in sample plant (a new scene starts from it).
+  loadSample() {
+    const s = this.app.sampleDxf;
+    if (!s) throw new Error('示例厂房没有加载');
+    return this.loadDxf(s.text, s.name, null, '示例厂房无法生成工序');
+  }
+
+  // An empty floor, for a scene built up by hand.
+  async loadBlank() {
+    this.removeOverlay();
+    await this.app.enterScene(null, BLANK_NAME, null, { blank: true });
+    this.drawing = BLANK_DRAWING;
+    this.render();
+  }
+
+  async loadDxf(text, name, drawingId, failMsg) {
+    const app = this.app;
+    if (app.site.isScene) app.exitScene();
+    const prev = app.baseDxf;
+    try {
+      await app.site.loadBase(text, name);
+      app.baseDxf = { text, name };
+    } catch (error) {
+      if (prev) await app.site.loadBase(prev.text, prev.name);
+      throw new Error(`${failMsg}：${error.message}`);
+    }
+    this.drawing = drawingId;
+    this.processDrawing = drawingId;
+    for (const { root } of this.placed.values()) app.site.scene.add(root);
+    this.removeOverlay();
+    app.refresh();
+    app.setView('overview');
+    app.bump();
+  }
+
+  // Generate a plant from a drawing and play its construction (地坪→立柱→吊车梁→行车→围护→设备→屋面).
+  async buildPlant(asset, text, name, note, { quiet = false } = {}) {
+    this.removeOverlay();
+    const r = await this.app.enterScene(text, name, asset);
+    this.drawing = asset.id;
+    if (this.ws && !this.switching) this.ws.addAsset(this.ws.active.id, asset.id);
+    if (!quiet) this.app.toast(`已按图纸 ${asset.name} 生成厂房，正在分步播放建造过程`);
+    this.app.save?.();
+    this.render();
+    return {
+      图纸: asset.name,
+      模式: '图纸生成厂房（建造动画）',
+      识别: r.summary,
+      建造步骤: r.steps.map((s) => `${s.n} ${s.title} ${s.duration}s`),
+      清空了之前放入的模型: r.cleared || undefined,
+      说明: note ? `图纸不含工序图层（${note}），按普通厂房图生成` : undefined,
+    };
+  }
+
+  // Leaving a generated plant puts the AGV + crane plant (and its drawing) back.
+  sceneExited() {
+    this.drawing = this.processDrawing;
+    this.app.save?.();
+    this.render();
+  }
+
+  // A 2D equipment drawing (DXF/DWG in the scene library) read into views, dimensions and outlines.
+  async readDrawing(idOrName) {
+    const asset = this.find(idOrName);
+    if (!asset || asset.kind !== 'site') throw new Error(`场景库里没有图纸 ${idOrName}。现有图纸：${this.assets.filter((a) => a.kind === 'site').map((a) => a.name).join('、') || '无'}`);
+    const dxfUrl = asset.meta?.dxfUrl ?? asset.meta?.originalDxfUrl;
+    if (!dxfUrl) throw new Error(`${asset.name} 没有可用的 DXF（${asset.message ?? asset.status}）`);
+    const text = await fetch(dxfUrl).then((r) => {
+      if (!r.ok) throw new Error(`读不到 ${asset.name} 的 DXF（${r.status}）`);
+      return r.text();
+    });
+    const read = readEquipment(text, asset.originalName ?? asset.name);
+    // Outline ids are unique per drawing only, so a later drawing overrides an earlier one.
+    Object.assign(this.profiles, read.geometry);
+    this.drawings.set(asset.id, read);
+    return { asset, ...read };
+  }
+
+  // Reference pictures from the scene library, downscaled to JPEG data URLs for the vision model.
+  async imageData(names, max = 1024) {
+    const list = (Array.isArray(names) ? names : [names]).filter(Boolean);
+    const images = list.length ? list.map((n) => this.find(n)) : this.assets.filter((a) => a.kind === 'image');
+    const missing = list.filter((n, i) => !images[i] || images[i].kind !== 'image');
+    if (missing.length) throw new Error(`场景库里没有图片 ${missing.join('、')}。现有图片：${this.assets.filter((a) => a.kind === 'image').map((a) => a.name).join('、') || '无'}`);
+    if (!images.length) throw new Error('场景库里还没有图片，请先上传设备的参考图片');
+    const out = [];
+    for (const a of images.slice(0, 4)) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = a.url;
+      await img.decode();
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * k);
+      canvas.height = Math.round(img.naturalHeight * k);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      out.push({ name: a.name, size: [img.naturalWidth, img.naturalHeight], url: canvas.toDataURL('image/jpeg', 0.85) });
+    }
+    return out;
+  }
+
+  // Build an equipment model from a parts spec, store it as GLB in the scene library and
+  // optionally register it as a product. A rebuild under the same name replaces this session's
+  // earlier version and swaps any placed copies.
+  async buildModel(spec, { register = true, category, label } = {}) {
+    const { group, report } = buildFromSpec(spec, this.profiles);
+    const blob = await exportGlb(group);
+    const file = new File([blob], fileName(report.名称), { type: 'model/gltf-binary' });
+    const prev = this.builtModels.get(report.名称);
+    const { assets: added } = await this.upload([file]);
+    const asset = added.find((a) => a.kind === 'model' && a.status !== 'failed' && a.status !== 'unsupported');
+    if (!asset) throw new Error(`模型已生成，但存入场景库失败：${added[0]?.message ?? '上传没有返回资源'}`);
+    let product = null;
+    if (register) {
+      product = await this.registerProduct(asset.id, {
+        model: report.名称,
+        name: label ?? spec.label ?? report.名称,
+        category: category ?? spec.category,
+        // The product store takes numeric ranges only: record the overall size as fixed values.
+        params: Object.fromEntries([['length', '总长', report.外形_mm.长], ['width', '总宽', report.外形_mm.宽], ['height', '总高', report.外形_mm.高]]
+          .map(([key, l, v]) => [key, { label: `${l}（${report.外形_mm.来源}）`, min: v, nominal: v, max: v }])),
+      });
+    }
+    const replaced = [];
+    if (prev) {
+      for (const entry of [...this.placed.values()].filter((p) => p.asset.id === prev.assetId || p.asset.id === prev.productId)) {
+        const { x, y, heading, base, mount, bay } = entry;
+        this.remove(entry.key);
+        await this.place(product?.id ?? asset.id, { x, y, heading, elevation: base, mount, bay });
+        replaced.push(entry.key);
+      }
+      await fetch(`/api/library/scene/${prev.assetId}`, { method: 'DELETE' }).catch(() => {});
+      if (prev.productId) await fetch(`/api/library/products/${prev.productId}`, { method: 'DELETE' }).catch(() => {});
+      await this.reload();
+    }
+    this.builtModels.set(report.名称, { assetId: asset.id, productId: product?.id ?? null });
+    return { ...report, 场景库id: asset.id, 产品库id: product?.id ?? null, 替换了旧版本: prev ? true : undefined, 已同步替换场景中的实例: replaced.length ? replaced : undefined };
+  }
+
+  placedList() {
+    return [...this.placed.values()].map((p) => ({ id: p.key, 名称: p.asset.name, 来源: p.asset.source, x_mm: Math.round(p.x), y_mm: Math.round(p.y), 朝向_deg: p.heading, 安装: p.mount === 'runway' ? `${p.bay} 跨行车轨道` : '地面', 最长边_m: p.size }));
+  }
+
+  // Draw the converted linework (mm) just above the floor, centred on the current plant.
+  async loadOverlay(asset, { quiet = false } = {}) {
+    if (!asset.url) throw new Error(`${asset.name} 没有可用的底图数据`);
+    const data = await getJson(asset.url);
+    const box = data.bbox;
+    if (!box || !data.lines?.length) throw new Error(`${asset.name} 里没有可用的线条`);
+    const site = this.app.site;
+    const centre = site.built.centre;
+    const dx = centre.x - (box.minX + box.maxX) / 2;
+    const dy = centre.y - (box.minY + box.maxY) / 2;
+    const byLayer = new Map();
+    for (const line of data.lines) {
+      const pts = line.points;
+      const arr = byLayer.get(line.layer) ?? [];
+      const n = line.closed ? pts.length : pts.length - 1;
+      for (let i = 0; i < n; i++) {
+        const a = pts[i];
+        const b = pts[(i + 1) % pts.length];
+        arr.push((a.x + dx) / 1000, 0, -(a.y + dy) / 1000, (b.x + dx) / 1000, 0, -(b.y + dy) / 1000);
+      }
+      byLayer.set(line.layer, arr);
+    }
+    const palette = [0x2f4f6f, 0xc0392b, 0x7f8c8d, 0x1e8449, 0x8e44ad, 0xb9770e];
+    const root = new THREE.Group();
+    root.name = `overlay:${asset.id}`;
+    root.position.y = 0.04;
+    [...byLayer.values()].forEach((arr, i) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+      const mat = new THREE.LineBasicMaterial({ color: palette[i % palette.length], transparent: true, opacity: 0.85 });
+      root.add(new THREE.LineSegments(geo, mat));
+    });
+    this.removeOverlay();
+    site.scene.add(root);
+    this.overlay = { root, asset };
+    if (this.ws && !this.switching) this.ws.addAsset(this.ws.active.id, asset.id);
+    this.app.bump();
+    const w = ((box.maxX - box.minX) / 1000).toFixed(0);
+    const h = ((box.maxY - box.minY) / 1000).toFixed(0);
+    if (!quiet) this.app.toast(`${asset.name} 没有工位/AGV 图层，已叠为底图参考（${data.lines.length} 条线，约 ${w}×${h} m），工序沿用当前厂房`);
+    this.app.save?.();
+    this.render();
+    return { 底图: asset.name, 线条数: data.lines.length, 尺寸_m: [+w, +h], 说明: '图纸不含 A-WALL/AGV-PATH/AGV-STAT 图层，不能生成工序' };
+  }
+
+  removeOverlay() {
+    if (!this.overlay) return false;
+    this.overlay.root.removeFromParent();
+    this.overlay.root.traverse((o) => {
+      o.geometry?.dispose();
+      o.material?.dispose();
+    });
+    this.overlay = null;
+    this.app.bump();
+    this.app.save?.();
+    this.render();
+    return true;
+  }
+
+  // Summary for the agent: what the standard library has and what the open project holds.
+  summary() {
+    const ws = this.ws;
+    const p = ws.active;
+    return {
+      标准产品库: this.std.map((x) => ({ id: x.id, 型号: x.model ?? x.name, 类别: x.category })),
+      当前项目: p.name,
+      当前场景: ws.activeScene.name,
+      项目产品库: p.products.map((e) => ({ id: e.productId, 名称: e.name ?? this.product(e.productId)?.model ?? e.productId, 定制: Boolean(this.product(e.productId)?.baseProduct) })),
+      项目场景: p.scenes.map((s) => s.name),
+      项目文件: p.assets.map((id) => this.asset(id)).filter(Boolean).map((a) => ({ id: a.id, 名称: a.name, 类型: a.kind, 可用: Library.usable(a), 图纸类型: a.kind === 'site' ? (a.meta?.convention === 'generic' ? '普通厂房图（生成厂房）' : '工序图纸') : undefined })),
+      其他项目: ws.projects.filter((x) => x.id !== p.id).map((x) => x.name),
+      项目编号: p.id,
+      搭建模块: p.scenes.map((s) => ({ 名称: s.name, 类型: ({ site: '场景搭建', saddle: '鞍座搭建', product: '产品搭建' })[s.kind] ?? '自定义', 打开中: s.id === p.activeScene })),
+      项目案例库: ws.archives.map((a) => ({ id: a.id, 项目编号: a.projectId, 名称: a.name, 归档日期: fmtDate(a.archivedAt), 场景数: a.project.scenes.length })),
+    };
+  }
+}

@@ -21,6 +21,28 @@ npm run api
 
 另开终端执行 `npm run dev -- --host 127.0.0.1`，打开 Vite 输出的网址。API 位于 `http://127.0.0.1:8705`。
 
+## Loomi AIGC 工坊与 Magpie
+
+工作台的「AIGC 工坊」按 Loomi 风格把会话、Skills、领域工具和异步任务拆开：`industrial-aigc-video` 负责把主题拆成 2–4 个可审核镜头，`caption-packaging` 与 `voiceover-sync` 负责后续包装能力；主剪辑 Agent 仍以故事板和 Remotion 渲染器为唯一事实源。
+
+没有配置 Magpie 时，视频生成 API 会使用可复演的本地 mock，不会产生外部费用。要用 Magpie 反代额度测试，复制 `.env.example` 到 `.env` 并填写：
+
+```powershell
+MAGPIE_BASE_URL=http://127.0.0.1:7897/v1
+MAGPIE_API_KEY=你的反代密钥
+MAGPIE_VIDEO_MODEL=seedance-2-5
+# MAGPIE_VIDEO_CREATE_PATH=/videos
+```
+
+服务启动后可直接检查：
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8705/api/aigc/health
+Invoke-RestMethod http://127.0.0.1:8705/api/aigc/skills
+```
+
+`POST /api/aigc/plan` 只生成计划；`POST /api/aigc/videos` 才会创建 Magpie 视频任务并返回 `202`，`GET /api/aigc/videos/:id` 只轮询原任务 ID，不会因超时重复扣费。只有 provider 返回 `completed` 和视频 URL 时，界面才会显示生成完成。若本机 Magpie 只提供聊天模型而没有 `POST /videos`，把 `MAGPIE_BASE_URL` 换成实际的视频反代地址，或留空使用 mock。
+
 - `npm run check`：类型、规则测试和构建。
 - `GET /api/tuzi/health`：验证密钥和兔子 API 连通性，不会创建视频任务。
 - `POST /api/tuzi/videos`：提交视频生成任务；`GET /api/tuzi/videos/:id` 查询异步任务。
@@ -36,4 +58,5 @@ npm run api
 
 需要 Python、`D:\个人自媒体系统\tools\minimax-voice\minimax_voice.py`、`alinVoice01` 的 MiniMax 配置、FFmpeg/FFprobe 与 Chromium。完整运行前提、复用说明及当前限制见 [P0 演示说明](docs/P0-demo.md)。
 
-本轮使用本地规则模板，尚未连接视觉/编剧模型；IP 可后补。未调用 ChatCut 生成离线补充素材。公众号职责归 D；[重工业 AIGC 视频 Skill](docs/P1-industrial-aigc-skill.md) 为 P1 规划。
+本轮使用本地规则模板，尚未连接视觉/编剧模型；IP 可后补。未调用 ChatCut 生成离线补充素材。公众号职责归 D；[重工业 AIGC 视频 Skill](docs/P1-industrial-aigc-skill.md) 已在本工作台以 Magpie 可替换 provider 形式接入。
+
