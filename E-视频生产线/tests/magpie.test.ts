@@ -35,3 +35,4 @@ describe('Magpie video provider', () => {
     expect(fetcher).toHaveBeenNthCalledWith(2, 'http://magpie/v1/models', expect.anything());
   });
 });
+

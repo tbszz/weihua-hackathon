@@ -59,3 +59,4 @@ Invoke-RestMethod http://127.0.0.1:8705/api/aigc/skills
 需要 Python、`D:\个人自媒体系统\tools\minimax-voice\minimax_voice.py`、`alinVoice01` 的 MiniMax 配置、FFmpeg/FFprobe 与 Chromium。完整运行前提、复用说明及当前限制见 [P0 演示说明](docs/P0-demo.md)。
 
 本轮使用本地规则模板，尚未连接视觉/编剧模型；IP 可后补。未调用 ChatCut 生成离线补充素材。公众号职责归 D；[重工业 AIGC 视频 Skill](docs/P1-industrial-aigc-skill.md) 已在本工作台以 Magpie 可替换 provider 形式接入。
+

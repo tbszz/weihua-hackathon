@@ -95,3 +95,4 @@ export function createMagpieClientFromEnv(env: NodeJS.ProcessEnv = process.env):
     createPath: env.MAGPIE_VIDEO_CREATE_PATH,
   });
 }
+

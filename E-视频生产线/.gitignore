@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 .env
 .data/
@@ -12,3 +12,4 @@ data/assets/catalog.json
 demo/*.mp4
 demo/*.png
 *.log
+

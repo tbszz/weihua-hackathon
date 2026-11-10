@@ -44,3 +44,4 @@ Add an AIGC panel that lists installed skills, builds a bounded plan from a topi
 ### Task 5: Verify and document
 
 Run `npm run typecheck`, focused tests, `npm test`, and `npm run build`. Update `README.md` with Magpie configuration, mock mode, and the exact test command. Do not claim a real external generation unless the configured provider returns a completed task with a video URL.
+

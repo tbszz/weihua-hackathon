@@ -72,3 +72,4 @@ export function AigcStudio() {
     {message && <p className="aigc-message" role="status">{message}</p>}
   </section>;
 }
+

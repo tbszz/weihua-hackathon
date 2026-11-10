@@ -27,3 +27,4 @@ describe('AIGC skill registry', () => {
     expect(plan.claims).toEqual([{value: '3800 吨', source: 'https://example.com/claim'}]);
   });
 });
+
