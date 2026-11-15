@@ -41,6 +41,13 @@ const SYSTEM = `你是「小华」，卫华集团「3D 方案工作台」里的�
 - 用户给了尺寸但没给模型、也没给设备图时，同样先确认要不要等模型或图纸，不要用现有模型改尺寸冒充。
 - 设备图（DWG/DXF 里画的是起重机、大车等设备的视图，不是厂房）不要用 load_site_asset 去生成厂房。
 
+按厂房平面图图片生成厂房（用户上传的是平面图截图、照片或扫描件，不是 DWG/DXF）：
+1. 先调 view_images 看图，确认画的是厂房平面（有柱网、轴线、跨）。是设备照片就不要走这条。
+2. 读出：几跨、各跨跨度（垂直行车方向）、柱距（沿行车方向，逐个或等距）、钢柱还是混凝土柱；图上画了分区或设备外框的，按图上位置估中心和大小，名字照图上写的。
+3. 尺寸来源按优先级：图上写着的尺寸数字（source=图上尺寸标注）> 用户原话（source=用户给定）> 都没有时按图上比例估，再就近取 GB/T 50006 模数（跨度 ≤18 m 取 3 m 倍数、>18 m 取 6 m 倍数，柱距取 6 m 倍数，source=按图比例+标准模数）。图上连比例都看不出（只有示意框、看不清柱子）时，先问用户跨度和柱距。
+4. 调 build_plant_from_image 一次交完。工具报错按原因改一次再调；仍不行就把原因告诉用户。
+5. 回复给：几跨、各跨跨度、柱距、厂房长宽、尺寸来源。按标准模数推的，必须说一句"尺寸是按图上比例和国标模数推的，请核对，告诉我实际尺寸可以重建"。厂房里的行车只是按跨画的示意行车，不代表具体型号。
+
 按二维设备图建三维模型（用户给了设备图纸，可能还有几张外观图片）：
 1. 先调 read_equipment_drawing 读图：得到各视图（主视/侧视/俯视…）、全部尺寸标注、参数表和标题栏文字、各视图主要轮廓 id。
 2. 有图片就调 view_images 看图，只用来判断外观：颜色、零件形状、零件大致相对位置、梁是箱形还是工字。图片里的尺寸一律不可信。
@@ -453,7 +460,7 @@ export class Agent {
     ui.card(`<div class="card upcard"><h4>已存入场景库<span class="r ${ready === assets.length ? 'ok' : 'warn'}">${ready}/${assets.length} 可用</span></h4><div class="uplist">${rows}</div></div>`);
     ui.newText();
     this.scroll();
-    const desc = assets.map((a) => `id=${a.id} 名称=${a.name} 类型=${KIND[a.kind] ?? a.kind}${usable(a) ? '' : ` 不可用（${a.message || '无法识别'}）`}${a.kind === 'site' && a.meta?.convention === 'generic' ? ' 无工位图层只能叠底图' : ''}`).join('；');
+    const desc = assets.map((a) => `id=${a.id} 名称=${a.name} 类型=${KIND[a.kind] ?? a.kind}${usable(a) ? '' : ` 不可用（${a.message || '无法识别'}）`}${a.kind === 'site' && a.meta?.convention === 'generic' ? ' 普通厂房图纸（无工位图层），load_site_asset 会生成新厂房并播放建造过程' : ''}${a.kind === 'image' && usable(a) ? ' 若是厂房平面图，先 view_images 看图再用 build_plant_from_image 生成厂房' : ''}`).join('；');
     return `（用户上传了 ${assets.length} 个文件：${desc}）`;
   }
 
@@ -469,6 +476,8 @@ export class Agent {
       parts.push(`${models.map((a) => a.name).join('、')} 已转成三维模型。要放在哪？比如"放在 ${ids[0] ?? 'H-01'} 东边 5 米"或"放在 x 30 米、y 12 米，转 90 度"；也可以在左边场景库手动点「放入场景」。`);
     }
     if (sites.length) parts.push(`图纸 ${sites.map((a) => a.name).join('、')} 可以点卡片上的按钮载入，或直接说"载入这张图纸"。`);
+    const images = assets.filter((a) => a.kind === 'image' && usable(a));
+    if (images.length) parts.push(`图片 ${images.map((a) => a.name).join('、')} 已存入场景库。如果是厂房平面图，说"按这张图生成厂房"，我读出柱网后建出来。`);
     if (bad.length) parts.push(`${bad.map((a) => `${a.name}：${a.message || '无法识别'}`).join('；')}。`);
     const reply = parts.join('') || '文件已存入场景库。';
     ui.text.textContent = reply;

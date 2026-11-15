@@ -2,6 +2,7 @@
 // first and throws a readable reason; nothing is clamped silently.
 import { CATALOG } from '../../demo/src/catalog.js';
 import { effHtml } from './main.js';
+import { planToDxf } from './plan-dxf.js';
 import { fmtTime, simulateShift } from './process.js';
 import { createExtTools } from './tools-ext.js';
 
@@ -48,6 +49,17 @@ export const SCHEMAS = [
     category: { type: 'string', description: '分类（英文小写），如 overhead_crane、coil、vehicle；不填按名称推断' },
   }, ['asset']),
   fn('load_site_asset', '载入场景库里的 DXF/DWG 图纸。普通厂房图纸：识别柱网、跨、吊车梁、墙、门窗和设备，生成新的三维厂房并播放建造过程（地坪→立柱→吊车梁→行车→围护→设备→屋面）。带卫华约定图层（A-WALL/AGV-PATH/AGV-STAT）的图纸：替换 AGV + 行车工序方案的厂房。用户明确只要"叠底图""只做参考"时传 overlay=true，只把线条铺在地面上，不建厂房。', { asset: { type: 'string' }, overlay: { type: 'boolean', description: '只叠为底图参考，不生成厂房' } }, ['asset']),
+  fn('build_plant_from_image', '厂房平面图是图片（截图、照片、扫描件）时用：先 view_images 看图，把柱网读成数字交给本工具。它写出一张 DXF 存入场景库，再像 load_site_asset 一样生成厂房并播放建造过程。行车沿长边（X）运行：spans_m 是垂直行车方向的各跨跨度（从图下方/南侧往上排），pitches_m 是沿行车方向的柱距。尺寸来源 source 必填：图上写着尺寸数字用「图上尺寸标注」；用户在对话里说的用「用户给定」；图上没数字、用户也没给时，按图上比例估出来并取 GB/T 50006 模数（跨度 ≤18 m 取 3 m 倍数、>18 m 取 6 m 倍数，柱距取 6 m 倍数）用「按图比例+标准模数」，工具会拒绝不在模数上的值，回复时必须说明是按标准模数推的、请用户核对。', {
+    image: { type: 'string', description: '平面图图片的 id 或名称（用来给生成的图纸命名）' },
+    source: { type: 'string', enum: ['图上尺寸标注', '用户给定', '按图比例+标准模数'] },
+    spans_m: { type: 'array', items: { type: 'number' }, description: '各跨跨度（米），从 Y=0 一侧往上排' },
+    pitches_m: { type: 'array', items: { type: 'number' }, description: '沿行车方向逐个柱距（米）；柱距都相等时可改给 length_m + pitch_m' },
+    length_m: { type: 'number', description: '厂房长（首末柱轴线间，米），与 pitch_m 搭配' },
+    pitch_m: { type: 'number', description: '等柱距（米）' },
+    column: { type: 'string', enum: ['steel', 'concrete'], description: '钢柱 / 混凝土柱，看不出来用 steel' },
+    areas: { type: 'array', description: '图上画出的分区（最长边 ≥15 m），中心坐标从第一根柱（左下角轴线交点）量起', items: { type: 'object', properties: { name: { type: 'string' }, x_m: { type: 'number' }, y_m: { type: 'number' }, w_m: { type: 'number' }, d_m: { type: 'number' } }, required: ['name', 'x_m', 'y_m', 'w_m', 'd_m'] } },
+    equipment: { type: 'array', description: '图上画出的设备外框（最长边 2–15 m），坐标同 areas。只画外框占位，不代表具体型号', items: { type: 'object', properties: { name: { type: 'string' }, x_m: { type: 'number' }, y_m: { type: 'number' }, w_m: { type: 'number' }, d_m: { type: 'number' } }, required: ['name', 'x_m', 'y_m', 'w_m', 'd_m'] } },
+  }, ['image', 'source', 'spans_m']),
   fn('exit_scene', '离开图纸生成的厂房，回到原来的 AGV + 行车工序方案。'),
   fn('read_equipment_drawing', '读取场景库里的二维设备图（起重机、大车、小车、铝卷等设备的 DWG/DXF，不是厂房图）：返回各视图（标题、图面尺寸）、所有尺寸标注值、参数表与标题栏文字、各视图主要闭合轮廓（id 如 V1-P3，可用于 extrude 零件）。图面比例会按标注自动换算成实际 mm。', {
     asset: { type: 'string', description: '图纸 id 或名称' },
@@ -55,7 +67,7 @@ export const SCHEMAS = [
   fn('get_profile_points', '取某个轮廓的全部点坐标（mm，相对所在视图左下角），用于核对外形或手工改写 points_mm。', {
     id: { type: 'string', description: '轮廓 id，如 V1-P3' },
   }, ['id']),
-  fn('view_images', '查看场景库里的参考图片（设备照片、效果图、三维截图），图片会随后发给你。只用来判断外观、颜色、零件形状和相对位置，不能当尺寸来源。不给 assets 就看全部图片（最多 4 张）。', {
+  fn('view_images', '查看场景库里的图片（设备照片、效果图、三维截图、厂房平面图的截图/照片），图片会随后发给你。设备图片只用来判断外观、颜色、零件形状和相对位置，不能当尺寸来源；厂房平面图图片用来读柱网，图上写着的尺寸数字可以用，量像素估的尺寸只能按标准模数取整（见 build_plant_from_image）。不给 assets 就看全部图片（最多 4 张）。', {
     assets: { type: 'array', items: { type: 'string' }, description: '图片 id 或名称' },
   }),
   fn('build_equipment_model', '按零件清单用 three.js 建设备三维模型，导出 GLB 存入场景库，并（默认）登记进产品库，之后可用 place_asset 放进厂房。外形总尺寸必须来自图纸或用户；拼出的模型外形和 overall 相差超过 5% 会被拒绝。同名再建会替换本次会话里的旧版本。', {
@@ -572,6 +584,18 @@ export function createTools(app) {
     load_site_asset: async ({ asset, overlay }) => {
       const r = await app.library.loadSite(asset, { overlay: overlay === true });
       return { result: r, chip: r.底图 ? `底图 ${r.底图}` : r.模式?.startsWith('图纸生成') ? `生成厂房 · ${r.图纸}` : `图纸 ${r.图纸}` };
+    },
+
+    build_plant_from_image: async ({ image, ...spec }) => {
+      const pic = app.library.find(image);
+      if (!pic || pic.kind !== 'image') throw new Error(`场景库里没有图片 ${image}`);
+      const { text, summary } = planToDxf(spec);
+      const file = new File([text], `${pic.name}-图片生成.dxf`, { type: 'application/dxf' });
+      const { assets } = await app.library.upload([file]);
+      const dxf = assets.find((a) => a.kind === 'site' && a.status !== 'failed' && a.status !== 'unsupported');
+      if (!dxf) throw new Error(`柱网已生成，但图纸存入场景库失败：${assets[0]?.message ?? '上传没有返回资源'}`);
+      const r = await app.library.loadSite(dxf.id);
+      return { result: { 读图结果: summary, ...r, 生成的图纸: dxf.name }, chip: `图片生成厂房 · ${pic.name}` };
     },
 
     read_equipment_drawing: async ({ asset }) => {
