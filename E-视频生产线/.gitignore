@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 .env
 .data/
@@ -7,7 +7,9 @@ data/assets/normalized/
 data/assets/audio/
 data/jobs/
 data/editor-sessions/
+data/aigc/tasks/
 data/assets/catalog.json
 demo/*.mp4
 demo/*.png
 *.log
+
